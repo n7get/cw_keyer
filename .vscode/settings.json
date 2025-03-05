@@ -1,0 +1,14 @@
+{
+    "C_Cpp.intelliSenseEngine": "default",
+    "idf.espIdfPath": "/Users/rna/esp/esp-idf",
+    "idf.pythonInstallPath": "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+    "idf.openOcdConfigs": [
+        "board/esp32-wrover-kit-3.3v.cfg"
+    ],
+    "idf.port": "/dev/tty.usbserial-110",
+    "idf.toolsPath": "/Users/rna/.espressif",
+    "files.associations": {
+        "morse_code_characters.h": "c"
+    },
+    "idf.flashType": "UART"
+}
