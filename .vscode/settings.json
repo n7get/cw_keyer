@@ -3,12 +3,15 @@
     "idf.espIdfPath": "/Users/rna/esp/esp-idf",
     "idf.pythonInstallPath": "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
     "idf.openOcdConfigs": [
-        "board/esp32-wrover-kit-3.3v.cfg"
+        "board/esp32c6-builtin.cfg"
     ],
     "idf.port": "/dev/tty.usbserial-110",
     "idf.toolsPath": "/Users/rna/.espressif",
     "files.associations": {
         "morse_code_characters.h": "c"
     },
-    "idf.flashType": "UART"
+    "idf.flashType": "UART",
+    "idf.customExtraVars": {
+        "IDF_TARGET": "esp32c6"
+    }
 }

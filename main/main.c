@@ -2,6 +2,7 @@
 #include <string.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include "freertos/FreeRTOSConfig.h"
 #include "driver/gpio.h"
 #include "morse_code_characters.h"
 
