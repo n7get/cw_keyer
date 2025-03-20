@@ -1,12 +1,12 @@
 {
     "C_Cpp.intelliSenseEngine": "default",
-    "idf.espIdfPath": "/Users/rna/esp/esp-idf",
-    "idf.pythonInstallPath": "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+    "idf.espIdfPath": "/home/rna/esp/esp-idf",
+    "idf.pythonInstallPath": "/usr/bin/python3",
     "idf.openOcdConfigs": [
         "board/esp32c6-builtin.cfg"
     ],
-    "idf.port": "/dev/tty.usbserial-110",
-    "idf.toolsPath": "/Users/rna/.espressif",
+    "idf.port": "/dev/ttyUSB0",
+    "idf.toolsPath": "/home/rna/.espressif",
     "files.associations": {
         "morse_code_characters.h": "c"
     },
