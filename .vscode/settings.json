@@ -8,7 +8,13 @@
     "idf.port": "/dev/ttyUSB0",
     "idf.toolsPath": "/home/rna/.espressif",
     "files.associations": {
-        "morse_code_characters.h": "c"
+        "morse_code_characters.h": "c",
+        "network.h": "c",
+        "esp_log.h": "c",
+        "morse_code.h": "c",
+        "esp_err.h": "c",
+        "index.h": "c",
+        "http.h": "c"
     },
     "idf.flashType": "UART",
     "idf.customExtraVars": {
