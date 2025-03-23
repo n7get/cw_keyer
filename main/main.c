@@ -17,9 +17,10 @@ void app_main(void)
     ESP_LOGI("MAIN", "Starting application");
 
     // Initialize the network
-    wifi_init_sta();
+    wifi_init();
 
     if(!start_webserver()) {
+        ESP_LOGE("MAIN", "Failed to start web server");
         return;
     }
     
