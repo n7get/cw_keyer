@@ -1,3 +1,5 @@
+import sys
+
 def html_to_c_string(html_file):
     """Reads an HTML file and converts it to a C string."""
     with open(html_file, 'r') as file:
@@ -9,17 +11,29 @@ def html_to_c_string(html_file):
         escaped_line = line.rstrip().replace('"', '\\"')
         c_string += f'"{escaped_line}\\n"\n'
 
-    return c_string
+    return c_string + ';'
 
 
 def main():
-    # Path to the HTML file
-    html_file = "index.html"
-    # Output C code
-    c_code = html_to_c_string(html_file)
+    # Check if the input file is provided as a command-line argument
+    if len(sys.argv) != 2:
+        print("Usage: python3 conv_c.py <input_file>")
+        sys.exit(1)
 
-    print("Generated C code:")
-    print(c_code)
+    # Get the input file name from the command-line argument
+    html_file = sys.argv[1]
+
+    try:
+        # Convert the HTML file to a C string
+        c_code = html_to_c_string(html_file)
+
+        print(c_code)
+    except FileNotFoundError:
+        print(f"Error: File '{html_file}' not found.")
+        sys.exit(1)
+    except Exception as e:
+        print(f"Error: {e}")
+        sys.exit(1)
 
 
 if __name__ == "__main__":

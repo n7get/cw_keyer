@@ -6,10 +6,10 @@
 #include "esp_log.h"
 #include "morse_code.h"
 #include "morse_code_characters.h"
+#include "settings.h"
 
 typedef struct {
     char message[128];
-    int wpm;
 } morse_task_t;
 
 static int gpio_pin = -1;
@@ -23,7 +23,7 @@ void blink_led(int duration)
     gpio_set_level(gpio_pin, 1);
     vTaskDelay(duration / portTICK_PERIOD_MS);
     gpio_set_level(gpio_pin, 0);
-}   
+}
 
 void space(int duration)
 {
@@ -41,10 +41,10 @@ void morse_code_task(void *arg)
 
             // Set busy to true while processing
             busy = true;
-        
-            ESP_LOGI("MORSE_TASK", "Processing message: %s, WPM: %d", task_data.message, task_data.wpm);
 
-            int unit = calculate_dit_duration(task_data.wpm); // duration of one DIT in milliseconds
+            ESP_LOGI("MORSE_TASK", "Processing message: %s", task_data.message);
+
+            int unit = calculate_dit_duration(wpm); // duration of one DIT in milliseconds
 
             for (int i = 0; i < strlen(task_data.message); i++) {
                 char c = task_data.message[i];
@@ -104,12 +104,12 @@ void morse_code_init(int pin)
     if (xTaskCreate(morse_code_task, "morse_code_task", 4096, NULL, 5, &morse_task_handle) != pdPASS) {
         ESP_LOGE("MORSE_INIT", "Failed to create task");
         return;
-    }           
+    }
 
     ESP_LOGI("MORSE_INIT", "Morse code initialized");
 }
 
-void send_morse_code(const char *message, int wpm)
+void send_morse_code(const char *message)
 {
     if (morse_queue == NULL) {
         ESP_LOGE("SEND_MORSE", "Queue not initialized");
@@ -118,17 +118,15 @@ void send_morse_code(const char *message, int wpm)
 
     morse_task_t task_data;
 
-    // Copy the message and WPM into the allocated structure
+    // Copy the message into the allocated structure
     strncpy(task_data.message, message, sizeof(task_data.message) - 1);
     task_data.message[sizeof(task_data.message) - 1] = '\0';
-    task_data.wpm = wpm;
 
-    ESP_LOGI("SEND_MORSE", "Sending message: %s, WPM: %d", task_data.message, task_data.wpm);
+    ESP_LOGI("SEND_MORSE", "Sending message: %s", task_data.message);
     // Send the pointer to the queue
     if (xQueueSend(morse_queue, &task_data, portMAX_DELAY) != pdPASS) {
         ESP_LOGE("SEND_MORSE", "Failed to send message to queue");
-    }
-    else {
+    } else {
         ESP_LOGI("SEND_MORSE", "Message sent to queue");
     }
 }

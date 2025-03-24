@@ -2,14 +2,10 @@
 #include "esp_wifi.h"
 #include "esp_event.h"
 #include "esp_log.h"
-#include "nvs_flash.h"
 #include "esp_err.h"
 #include "esp_mac.h"
+#include "settings.h"
 
-#define WIFI_STA_SSID "your_sta_ssid" // Replace with your STA SSID
-#define WIFI_STA_PASS "your_sta_password" // Replace with your STA password
-#define WIFI_AP_SSID "cw_keyer"
-#define WIFI_AP_PASS "cw_keyer"
 #define MAX_STA_CONN 4
 #define MAX_RETRY 5
 
@@ -76,10 +72,6 @@ static void wifi_event_handler(void *arg, esp_event_base_t event_base, int32_t e
 // Initialize Wi-Fi as Station
 void wifi_init_sta(void)
 {
-    ESP_ERROR_CHECK(nvs_flash_init());
-    ESP_ERROR_CHECK(esp_netif_init());
-    ESP_ERROR_CHECK(esp_event_loop_create_default());
-
     esp_netif_create_default_wifi_sta();
 
     wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
@@ -90,17 +82,16 @@ void wifi_init_sta(void)
     ESP_ERROR_CHECK(esp_event_handler_instance_register(WIFI_EVENT, ESP_EVENT_ANY_ID, &wifi_event_handler, NULL, &instance_any_id));
     ESP_ERROR_CHECK(esp_event_handler_instance_register(IP_EVENT, IP_EVENT_STA_GOT_IP, &wifi_event_handler, NULL, &instance_got_ip));
 
-    wifi_config_t wifi_config = {
-        .sta = {
-            .ssid = WIFI_STA_SSID,
-            .password = WIFI_STA_PASS,
-        },
-    };
+    wifi_config_t wifi_config;
+    memset(&wifi_config, 0, sizeof(wifi_config));
+    strncpy((char *)wifi_config.sta.ssid, sta_ssid, sizeof(wifi_config.sta.ssid));
+    strncpy((char *)wifi_config.sta.password, sta_password, sizeof(wifi_config.sta.password));
+
     ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA));
     ESP_ERROR_CHECK(esp_wifi_set_config(ESP_IF_WIFI_STA, &wifi_config));
     ESP_ERROR_CHECK(esp_wifi_start());
 
-    ESP_LOGI(TAG, "Wi-Fi initialized in STA mode. Connecting to SSID: %s...", WIFI_STA_SSID);
+    ESP_LOGI(TAG, "Wi-Fi initialized in STA mode. Connecting to SSID: %s...", sta_ssid);
 }
 
 // Initialize Wi-Fi as Access Point
@@ -114,17 +105,15 @@ void wifi_init_ap(void)
     esp_event_handler_instance_t instance_any_id;
     ESP_ERROR_CHECK(esp_event_handler_instance_register(WIFI_EVENT, ESP_EVENT_ANY_ID, &wifi_event_handler, NULL, &instance_any_id));
 
-    wifi_config_t wifi_config = {
-        .ap = {
-            .ssid = WIFI_AP_SSID,
-            .ssid_len = strlen(WIFI_AP_SSID),
-            .password = WIFI_AP_PASS,
-            .max_connection = MAX_STA_CONN,
-            .authmode = WIFI_AUTH_WPA_WPA2_PSK,
-        },
-    };
+    wifi_config_t wifi_config;
+    memset(&wifi_config, 0, sizeof(wifi_config));
+    strncpy((char *)wifi_config.ap.ssid, ap_ssid, sizeof(wifi_config.ap.ssid));
+    strncpy((char *)wifi_config.ap.password, ap_password, sizeof(wifi_config.ap.password));
+    wifi_config.ap.ssid_len = strlen(ap_ssid);
+    wifi_config.ap.max_connection = MAX_STA_CONN;
+    wifi_config.ap.authmode = WIFI_AUTH_WPA2_PSK;
 
-    if (strlen(WIFI_AP_PASS) == 0)
+    if (strlen(ap_password) == 0)
     {
         wifi_config.ap.authmode = WIFI_AUTH_OPEN;
     }
@@ -133,12 +122,24 @@ void wifi_init_ap(void)
     ESP_ERROR_CHECK(esp_wifi_set_config(ESP_IF_WIFI_AP, &wifi_config));
     ESP_ERROR_CHECK(esp_wifi_start());
 
-    ESP_LOGI(TAG, "Wi-Fi Access Point initialized. SSID: %s, Password: %s", WIFI_AP_SSID, WIFI_AP_PASS);
+    ESP_LOGI(TAG, "Wi-Fi Access Point initialized. SSID: %s, Password: %s", ap_ssid, ap_password);
 }
 
 // Main Wi-Fi initialization function
 void wifi_init(void)
 {
     ESP_LOGI(TAG, "Starting Wi-Fi...");
-    wifi_init_sta(); // Start with STA mode
+    ESP_ERROR_CHECK(esp_netif_init());
+    ESP_ERROR_CHECK(esp_event_loop_create_default());
+
+    if(strlen(sta_ssid) > 0)
+    {
+        ESP_LOGI(TAG, "Starting Wi-Fi in STA mode...");
+        wifi_init_sta();
+    }
+    else
+    {
+        ESP_LOGI(TAG, "Starting Wi-Fi in AP mode...");
+        wifi_init_ap();
+    }
 }

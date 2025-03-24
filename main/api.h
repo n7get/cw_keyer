@@ -4,6 +4,6 @@
 #include "esp_http_server.h"
 
 // Initialize the RESTful API and register endpoints
-void api_register_endpoints();
+void api_init();
 
 #endif // API_H

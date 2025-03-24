@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            max-width: 400px;
+            margin-bottom: 20px;
+        }
+        header h1 {
+            margin: 0;
+            text-align: center;
+            flex-grow: 1;
+        }
+        #cancelButton {
+            background-color: #FF4C4C;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            padding: 10px 15px;
+        }
+        #cancelButton:hover {
+            background-color: #CC0000;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            width: 100%;
+            max-width: 400px;
+        }
+        label {
+            margin-top: 10px;
+        }
+        input {
+            margin-bottom: 10px;
+            padding: 5px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        button {
+            padding: 10px 15px;
+            margin-top: 10px;
+            align-self: flex-start;
+        }
+        #status {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            background-color: #f9f9f9;
+            width: 100%;
+            max-width: 400px;
+            box-sizing: border-box;
+        }
+        #status h3 {
+            margin: 0 0 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Settings</h1>
+        <button id="cancelButton" onclick="navigateToIndex()">Cancel</button>
+    </header>
+    <form id="settingsForm">
+        <label for="wpm">WPM (Words Per Minute):</label>
+        <input type="number" id="wpm" name="wpm" placeholder="Enter WPM" min="5" max="50">
+
+        <label for="ap_ssid">AP SSID:</label>
+        <input type="text" id="ap_ssid" name="ap_ssid" placeholder="Enter AP SSID">
+
+        <label for="ap_password">AP Password:</label>
+        <input type="password" id="ap_password" name="ap_password" placeholder="Enter AP Password">
+
+        <label for="sta_ssid">STA SSID:</label>
+        <input type="text" id="sta_ssid" name="sta_ssid" placeholder="Enter STA SSID">
+
+        <label for="sta_password">STA Password:</label>
+        <input type="password" id="sta_password" name="sta_password" placeholder="Enter STA Password">
+
+        <button type="button" onclick="updateSettings()">Update Settings</button>
+    </form>
+
+    <div id="status">
+        <h3>Status</h3>
+        <p id="statusText">Loading...</p>
+    </div>
+
+    <script>
+        // Navigate back to the index page
+        function navigateToIndex() {
+            window.location.href = '/';
+        }
+
+        // Fetch current settings from the server
+        async function fetchSettings() {
+            try {
+                const response = await fetch('/api/settings');
+                if (!response.ok) {
+                    throw new Error('Failed to fetch settings');
+                }
+                const data = await response.json();
+                document.getElementById('wpm').value = data.wpm;
+                document.getElementById('ap_ssid').value = data.ap_ssid;
+                document.getElementById('ap_password').value = data.ap_password;
+                document.getElementById('sta_ssid').value = data.sta_ssid;
+                document.getElementById('sta_password').value = data.sta_password;
+                document.getElementById('statusText').innerText = 'Settings loaded successfully';
+            } catch (error) {
+                console.error('Error fetching settings:', error);
+                document.getElementById('statusText').innerText = 'Error fetching settings';
+            }
+        }
+
+        // Update settings on the server
+        async function updateSettings() {
+            const settings = {
+                wpm: parseInt(document.getElementById('wpm').value, 10),
+                ap_ssid: document.getElementById('ap_ssid').value,
+                ap_password: document.getElementById('ap_password').value,
+                sta_ssid: document.getElementById('sta_ssid').value,
+                sta_password: document.getElementById('sta_password').value,
+            };
+
+            try {
+                const response = await fetch('/api/settings', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(settings),
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to update settings');
+                }
+
+                const data = await response.json();
+                document.getElementById('statusText').innerText = data.result || 'Settings updated successfully';
+
+                // Navigate back to the index page after a short delay
+                setTimeout(() => {
+                    window.location.href = '/';
+                }, 2000); // 2-second delay
+            } catch (error) {
+                console.error('Error updating settings:', error);
+                document.getElementById('statusText').innerText = 'Error updating settings';
+            }
+        }
+
+        // Load settings on page load
+        window.onload = fetchSettings;
+    </script>
+</body>
+</html>

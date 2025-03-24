@@ -3,42 +3,86 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Morse Code Sender</title>
+    <title>CW Sender</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             margin: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            max-width: 400px;
+            margin-bottom: 20px;
+        }
+        header h1 {
+            margin: 0;
+            text-align: center;
+            flex-grow: 1;
+        }
+        #settingsButton {
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            padding: 10px 15px;
+        }
+        #settingsButton:hover {
+            background-color: #0056b3;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            width: 100%;
+            max-width: 400px;
         }
         label {
-            display: block;
             margin-top: 10px;
         }
         input {
             margin-bottom: 10px;
             padding: 5px;
-            width: 200px;
+            width: 100%;
+            box-sizing: border-box;
         }
         button {
-            padding: 5px 10px;
+            padding: 10px 15px;
             margin-top: 10px;
+            align-self: flex-start;
         }
         #status {
             margin-top: 20px;
             padding: 10px;
             border: 1px solid #ccc;
             background-color: #f9f9f9;
+            width: 100%;
+            max-width: 400px;
+            box-sizing: border-box;
+        }
+        #status h3 {
+            margin: 0 0 10px 0;
         }
     </style>
 </head>
 <body>
-    <h1>Morse Code Sender</h1>
-    <label for="message">Message:</label>
-    <input type="text" id="message" placeholder="Enter your message">
+    <header>
+        <h1>CW Sender</h1>
+        <button id="settingsButton" onclick="navigateToSettings()">Settings</button>
+    </header>
+    <form>
+        <label for="message">Message:</label>
+        <input type="text" id="message" placeholder="Enter your message">
 
-    <label for="wpm">WPM (Words Per Minute):</label>
-    <input type="number" id="wpm" placeholder="Enter WPM" value="20">
-
-    <button onclick="sendMorse()">Send Morse Code</button>
+        <button type="button" onclick="sendMorse()">Send Morse Code</button>
+    </form>
 
     <div id="status">
         <h3>Status</h3>
@@ -54,40 +98,48 @@
         // Function to fetch and display the current status
         async function getStatus() {
             try {
-                const response = await fetch('/status');
+                const response = await fetch('/api/status');
                 if (!response.ok) {
                     throw new Error('Failed to fetch status');
                 }
+                
                 const data = await response.json();
-
-                // Decode the message to display it without escaping
-                const decodedMessage = data.message ? decodeURIComponent(data.message) : 'None';
-
-                document.getElementById('statusText').innerText = `
-                    Status: ${data.status}
-                    Message: ${decodedMessage}
-                    WPM: ${data.wpm}
-                    Busy: ${data.busy ? 'Yes' : 'No'}
-                `;
+                document.getElementById('statusText').innerText = `Status: ${data.status} Busy: ${data.busy ? 'Yes' : 'No'}`;
             } catch (error) {
                 console.error('Error fetching status:', error);
                 document.getElementById('statusText').innerText = 'Error fetching status';
             }
         }
 
+        // Function to fetch the current message and set it in the input field
+        async function loadCurrentMessage() {
+            try {
+                const response = await fetch('/api/message');
+                if (!response.ok) {
+                    throw new Error('Failed to fetch current message');
+                }
+                const data = await response.json();
+                document.getElementById('message').value = data.message ? decodeURIComponent(data.message) : '';
+            } catch (error) {
+                console.error('Error fetching current message:', error);
+                document.getElementById('statusText').innerText = 'Error fetching current message';
+            }
+        }
+
         // Function to send a message using the Morse API
         async function sendMorse() {
             const message = document.getElementById('message').value;
-            const wpm = document.getElementById('wpm').value;
-
-            if (!message || !wpm) {
-                document.getElementById('statusText').innerText = 'Please enter both message and WPM';
+    
+            if (!message) {
+                document.getElementById('statusText').innerText = 'Please enter a message';
                 return;
             }
-
+    
             try {
-                const response = await fetch(`/morse?message=${encodeURIComponent(message)}&wpm=${wpm}`, {
-                    method: 'POST'
+                const response = await fetch('/api/morse', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message }) // Send the message as JSON
                 });
                 if (!response.ok) {
                     throw new Error('Failed to send Morse code');
@@ -100,11 +152,19 @@
             }
         }
 
+        // Function to navigate to the settings page
+        function navigateToSettings() {
+            window.location.href = '/settings';
+        }
+
         // Fetch the status every second
         setInterval(getStatus, 1000);
 
-        // Fetch the status when the page loads
-        window.onload = getStatus;
+        // Fetch the current message and status when the page loads
+        window.onload = function () {
+            loadCurrentMessage();
+            getStatus();
+        };
     </script>
 </body>
 </html>
