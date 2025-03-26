@@ -1,23 +1,22 @@
-#include <stdio.h>
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
-#include "freertos/FreeRTOSConfig.h"
-#include "esp_log.h"
-#include "nvs_flash.h"
 #include "config.h"
+#include "esp_log.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/FreeRTOSConfig.h"
+#include "freertos/task.h"
 #include "http.h"
 #include "index.h"
 #include "message.h"
 #include "morse.h"
 #include "morse_code_characters.h"
 #include "network.h"
+#include "nvs_flash.h"
 #include "settings.h"
 #include "status.h"
+#include <stdio.h>
 
-#define MORSE_GPIO_PIN 2 // Define the GPIO pin for Morse code output
+#define MORSE_GPIO_PIN 2
 
-void app_main(void)
-{
+void app_main(void) {
     ESP_LOGI("MAIN", "Starting application");
 
     load_settings();
@@ -25,7 +24,7 @@ void app_main(void)
 
     wifi_init();
 
-    if(!start_webserver()) {
+    if (!start_webserver()) {
         ESP_LOGE("MAIN", "Failed to start web server");
         return;
     }

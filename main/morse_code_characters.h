@@ -1,3 +1,6 @@
+#ifndef MORSE_CODE_CHARACTERS_H
+#define MORSE_CODE_CHARACTERS_H
+
 #define END 0
 #define DIT 1
 #define DAH 3
@@ -6,4 +9,6 @@
 #define WORD_SPACE 7
 
 int calculate_dit_duration(int wpm);
-int* char_to_morse(char c);
+int *char_to_morse(char c);
+
+#endif // MORSE_CODE_CHARACTERS_H

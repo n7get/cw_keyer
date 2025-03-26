@@ -1,6 +1,6 @@
+#include "morse_code_characters.h"
 #include <stdio.h>
 #include <string.h>
-#include "morse_code_characters.h"
 
 #define MAX_MORSE_LENGTH 10
 
@@ -63,8 +63,7 @@ static const MorseCode morse_table[] = {
     {'_', {DIT, DIT, DAH, DAH, DIT, DAH, END}},
     {'"', {DIT, DAH, DIT, DIT, DAH, DIT, END}},
     {'$', {DIT, DIT, DIT, DAH, DIT, DIT, DAH, END}},
-    {'@', {DIT, DAH, DAH, DIT, DAH, DIT, END}}
-};
+    {'@', {DIT, DAH, DAH, DIT, DAH, DIT, END}}};
 
 /**
  * Calculate the duration of a DIT in milliseconds based on the given speed in WPM.
@@ -77,7 +76,7 @@ int calculate_dit_duration(int wpm) {
     return 1200 / wpm;
 }
 
-int* char_to_morse(char c) {
+int *char_to_morse(char c) {
     static int morse_code[MAX_MORSE_LENGTH];
     memset(morse_code, 0, sizeof(morse_code));
 

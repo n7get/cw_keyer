@@ -1,15 +1,15 @@
-#include <string.h>
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
-#include "freertos/queue.h"
+#include "morse.h"
 #include "driver/gpio.h"
-#include "esp_log.h"
 #include "esp_http_server.h"
+#include "esp_log.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/queue.h"
+#include "freertos/task.h"
 #include "http.h"
 #include "message.h"
-#include "morse.h"
 #include "morse_code_characters.h"
 #include "settings.h"
+#include <string.h>
 
 typedef struct {
     char message[MESSAGE_MAX_SIZE];
@@ -21,20 +21,17 @@ static TaskHandle_t morse_task_handle = NULL;
 
 bool busy = false;
 
-void blink_led(int duration)
-{
+void blink_led(int duration) {
     gpio_set_level(gpio_pin, 1);
     vTaskDelay(duration / portTICK_PERIOD_MS);
     gpio_set_level(gpio_pin, 0);
 }
 
-void space(int duration)
-{
+void space(int duration) {
     vTaskDelay(duration / portTICK_PERIOD_MS);
 }
 
-void morse_code_task(void *arg)
-{
+void morse_code_task(void *arg) {
     morse_task_t task_data;
 
     while (1) {
@@ -56,8 +53,8 @@ void morse_code_task(void *arg)
                     for (int j = 0; morse[j] != END; j++) {
                         blink_led(morse[j] * unit);
 
-                        if (morse[j + 1] != END) {                        // If not the last element
-                            space(SPACE * unit); // Space between DITs and DAHs
+                        if (morse[j + 1] != END) { // If not the last element
+                            space(SPACE * unit);   // Space between DITs and DAHs
                         }
                     }
 
@@ -72,8 +69,7 @@ void morse_code_task(void *arg)
     }
 }
 
-void morse_code_init(int pin)
-{
+void morse_code_init(int pin) {
     gpio_pin = pin;
 
     gpio_config_t io_conf;

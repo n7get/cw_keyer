@@ -1,14 +1,14 @@
-#include <stdio.h>
-#include <string.h>
-#include "esp_log.h"
-#include "esp_http_server.h"
-#include "esp_err.h"
-#include "nvs_flash.h"
-#include "nvs.h"
+#include "message.h"
 #include "cJSON.h"
 #include "config.h"
-#include "message.h"
+#include "esp_err.h"
+#include "esp_http_server.h"
+#include "esp_log.h"
 #include "http.h"
+#include "nvs.h"
+#include "nvs_flash.h"
+#include <stdio.h>
+#include <string.h>
 
 static const char *TAG = "MESSAGE";
 #define MESSAGE_KEY "message"
@@ -58,7 +58,6 @@ esp_err_t get_message_handler(httpd_req_t *req) {
         return ESP_FAIL;
     }
 
-    // Create JSON response using cJSON
     cJSON *response_json = cJSON_CreateObject();
     if (!response_json) {
         ESP_LOGE(TAG, "Failed to create JSON object");
@@ -80,7 +79,7 @@ esp_err_t get_message_handler(httpd_req_t *req) {
     httpd_resp_send(req, response, strlen(response));
 
     cJSON_Delete(response_json);
-    free((void *)response); // Free the printed JSON string
+    free((void *)response);
     return ESP_OK;
 }
 
