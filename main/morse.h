@@ -6,5 +6,6 @@
 
 void morse_code_init(int pin);
 void register_morse_endpoints(void);
+void send_morse_code(void);
 
 #endif // MORSE_CODE_H

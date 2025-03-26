@@ -1,3 +1,4 @@
+#include "button.h"
 #include "config.h"
 #include "esp_log.h"
 #include "freertos/FreeRTOS.h"
@@ -28,6 +29,8 @@ void app_main(void) {
         ESP_LOGE("MAIN", "Failed to start web server");
         return;
     }
+
+    button_init();
 
     register_index_page();
     register_message_endpoints();
