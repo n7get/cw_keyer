@@ -2,6 +2,6 @@
 #define MORSE_CODE_H
 
 void morse_code_init(int pin); // Initialize the Morse code system with a GPIO pin
-void send_morse_code(const char *message); // Send a message and WPM to the Morse code task
+void send_morse_code(void);    // Send the current message stored in NVS as Morse code
 
 #endif // MORSE_CODE_H

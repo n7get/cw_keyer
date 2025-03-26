@@ -13,8 +13,6 @@ extern char sta_password[64];
 
 // Function declarations
 void load_settings(void);
-esp_err_t settings_handler(httpd_req_t *req);
-esp_err_t get_settings_handler(httpd_req_t *req);
-void register_settings_endpoint(void);
+void register_settings_endpoints(void);
 
 #endif // SETTINGS_H

@@ -7,9 +7,10 @@
 #include "morse_code.h"
 #include "morse_code_characters.h"
 #include "settings.h"
+#include "message.h"
 
 typedef struct {
-    char message[128];
+    char message[MESSAGE_MAX_SIZE];
 } morse_task_t;
 
 static int gpio_pin = -1;
@@ -36,10 +37,7 @@ void morse_code_task(void *arg)
 
     while (1) {
         ESP_LOGI("MORSE_TASK", "Waiting for message...");
-        // Wait for a message from the queue
         if (xQueueReceive(morse_queue, &task_data, portMAX_DELAY)) {
-
-            // Set busy to true while processing
             busy = true;
 
             ESP_LOGI("MORSE_TASK", "Processing message: %s", task_data.message);
@@ -56,7 +54,7 @@ void morse_code_task(void *arg)
                     for (int j = 0; morse[j] != END; j++) {
                         blink_led(morse[j] * unit);
 
-                        if (morse[j + 1] != END) { // If not the last element
+                        if (morse[j + 1] != END) {                        // If not the last element
                             space(SPACE * unit); // Space between DITs and DAHs
                         }
                     }
@@ -67,7 +65,6 @@ void morse_code_task(void *arg)
                 }
             }
 
-            // Set busy to false after processing
             busy = false;
         }
     }
@@ -77,7 +74,6 @@ void morse_code_init(int pin)
 {
     gpio_pin = pin;
 
-    // Initialize GPIO for output
     gpio_config_t io_conf;
     io_conf.intr_type = GPIO_INTR_DISABLE;
     io_conf.mode = GPIO_MODE_OUTPUT;
@@ -85,22 +81,18 @@ void morse_code_init(int pin)
     io_conf.pull_down_en = GPIO_PULLDOWN_DISABLE;
     io_conf.pull_up_en = GPIO_PULLUP_DISABLE;
 
-    // Configure the GPIO
     gpio_config(&io_conf);
 
-    // Set the initial state to LOW
     gpio_reset_pin(gpio_pin);
     gpio_set_direction(gpio_pin, GPIO_MODE_OUTPUT);
     gpio_set_level(gpio_pin, 0);
 
-    // Create the queue
     morse_queue = xQueueCreate(10, sizeof(morse_task_t));
     if (morse_queue == NULL) {
         ESP_LOGE("MORSE_INIT", "Failed to create queue");
         return;
     }
 
-    // Create the task
     if (xTaskCreate(morse_code_task, "morse_code_task", 4096, NULL, 5, &morse_task_handle) != pdPASS) {
         ESP_LOGE("MORSE_INIT", "Failed to create task");
         return;
@@ -109,8 +101,7 @@ void morse_code_init(int pin)
     ESP_LOGI("MORSE_INIT", "Morse code initialized");
 }
 
-void send_morse_code(const char *message)
-{
+void send_morse_code(void) {
     if (morse_queue == NULL) {
         ESP_LOGE("SEND_MORSE", "Queue not initialized");
         return;
@@ -118,12 +109,15 @@ void send_morse_code(const char *message)
 
     morse_task_t task_data;
 
-    // Copy the message into the allocated structure
-    strncpy(task_data.message, message, sizeof(task_data.message) - 1);
-    task_data.message[sizeof(task_data.message) - 1] = '\0';
+    // Retrieve the current message from NVS
+    esp_err_t err = get_message(task_data.message, sizeof(task_data.message));
+    if (err != ESP_OK) {
+        ESP_LOGE("SEND_MORSE", "Failed to get message: %s", esp_err_to_name(err));
+        return;
+    }
 
     ESP_LOGI("SEND_MORSE", "Sending message: %s", task_data.message);
-    // Send the pointer to the queue
+
     if (xQueueSend(morse_queue, &task_data, portMAX_DELAY) != pdPASS) {
         ESP_LOGE("SEND_MORSE", "Failed to send message to queue");
     } else {

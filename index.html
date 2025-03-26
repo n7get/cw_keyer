@@ -81,7 +81,7 @@
         <label for="message">Message:</label>
         <input type="text" id="message" placeholder="Enter your message">
 
-        <button type="button" onclick="sendMorse()">Send Morse Code</button>
+        <button type="button" onclick="updateAndSendMorse()">Send Morse Code</button>
     </form>
 
     <div id="status">
@@ -90,12 +90,12 @@
     </div>
 
     <script>
-        // Automatically convert message input to uppercase
+        let lastMessage = '';
+
         document.getElementById('message').addEventListener('input', function (event) {
             event.target.value = event.target.value.toUpperCase();
         });
 
-        // Function to fetch and display the current status
         async function getStatus() {
             try {
                 const response = await fetch('/api/status');
@@ -111,7 +111,6 @@
             }
         }
 
-        // Function to fetch the current message and set it in the input field
         async function loadCurrentMessage() {
             try {
                 const response = await fetch('/api/message');
@@ -119,48 +118,57 @@
                     throw new Error('Failed to fetch current message');
                 }
                 const data = await response.json();
-                document.getElementById('message').value = data.message ? decodeURIComponent(data.message) : '';
+                lastMessage = data.message ? decodeURIComponent(data.message) : '';
+                document.getElementById('message').value = lastMessage;
             } catch (error) {
                 console.error('Error fetching current message:', error);
                 document.getElementById('statusText').innerText = 'Error fetching current message';
             }
         }
 
-        // Function to send a message using the Morse API
-        async function sendMorse() {
-            const message = document.getElementById('message').value;
-    
-            if (!message) {
+        async function updateAndSendMorse() {
+            const messageInput = document.getElementById('message').value;
+
+            if (!messageInput) {
                 document.getElementById('statusText').innerText = 'Please enter a message';
                 return;
             }
-    
+
             try {
-                const response = await fetch('/api/morse', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ message }) // Send the message as JSON
-                });
-                if (!response.ok) {
+                // Update the message only if it has changed
+                if (lastMessage !== messageInput) {
+                    const updateResponse = await fetch('/api/message', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ message: messageInput })
+                    });
+                    if (!updateResponse.ok) {
+                        throw new Error('Failed to update message');
+                    }
+                    const updateData = await updateResponse.json();
+                    document.getElementById('statusText').innerText = updateData.result || 'Message updated successfully';
+                    lastMessage = messageInput;
+                }
+
+                // Send the message as Morse code
+                const sendResponse = await fetch('/api/morse', { method: 'POST' });
+                if (!sendResponse.ok) {
                     throw new Error('Failed to send Morse code');
                 }
-                const data = await response.json();
-                document.getElementById('statusText').innerText = data.result || 'Morse code sent successfully';
+                const sendData = await sendResponse.json();
+                document.getElementById('statusText').innerText = sendData.result || 'Morse code sent successfully';
             } catch (error) {
-                console.error('Error sending Morse code:', error);
-                document.getElementById('statusText').innerText = 'Error sending Morse code';
+                console.error('Error:', error);
+                document.getElementById('statusText').innerText = 'Error: ' + error.message;
             }
         }
 
-        // Function to navigate to the settings page
         function navigateToSettings() {
             window.location.href = '/settings';
         }
 
-        // Fetch the status every second
         setInterval(getStatus, 1000);
 
-        // Fetch the current message and status when the page loads
         window.onload = function () {
             loadCurrentMessage();
             getStatus();

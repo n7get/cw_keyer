@@ -69,7 +69,7 @@ void load_settings(void) {
 }
 
 // Handler to set WPM, Wi-Fi AP, and STA parameters
-static esp_err_t settings_handler(httpd_req_t *req) {
+static esp_err_t set_settings_handler(httpd_req_t *req) {
     char content[256];
     int content_len = httpd_req_recv(req, content, sizeof(content) - 1);
 
@@ -393,13 +393,13 @@ static esp_err_t settings_page_handler(httpd_req_t *req) {
 }
 
 // Register API endpoints
-void register_settings_endpoint() {
+void register_settings_endpoints(void) {
     // Register the settings page
     register_html_page("/settings", HTTP_GET, settings_page_handler);
 
     // Register the API endpoints for settings
-    register_html_page("/api/settings", HTTP_POST, settings_handler);
     register_html_page("/api/settings", HTTP_GET, get_settings_handler);
+    register_html_page("/api/settings", HTTP_POST, set_settings_handler);
 
     ESP_LOGI(TAG, "Settings endpoints registered");
 }
