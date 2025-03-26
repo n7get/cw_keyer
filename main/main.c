@@ -2,17 +2,17 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "freertos/FreeRTOSConfig.h"
-#include "morse_code_characters.h"
 #include "esp_log.h"
-#include "api.h"
+#include "nvs_flash.h"
 #include "config.h"
 #include "http.h"
 #include "index.h"
 #include "message.h"
-#include "morse_code.h"
+#include "morse.h"
+#include "morse_code_characters.h"
 #include "network.h"
-#include "nvs_flash.h"
 #include "settings.h"
+#include "status.h"
 
 #define MORSE_GPIO_PIN 2 // Define the GPIO pin for Morse code output
 
@@ -31,9 +31,10 @@ void app_main(void)
     }
 
     register_index_page();
-    register_api_endpoints();
     register_message_endpoints();
+    register_morse_endpoints();
     register_settings_endpoints();
+    register_status_endpoints();
 
     morse_code_init(MORSE_GPIO_PIN);
 

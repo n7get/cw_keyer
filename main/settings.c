@@ -4,9 +4,9 @@
 #include "esp_log.h"
 #include "nvs_flash.h"
 #include "cJSON.h"
-#include "api.h"
 #include "http.h"
 #include "config.h"
+#include "status.h"
 
 static const char *TAG = "SETTINGS";
 

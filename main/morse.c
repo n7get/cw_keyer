@@ -4,10 +4,12 @@
 #include "freertos/queue.h"
 #include "driver/gpio.h"
 #include "esp_log.h"
-#include "morse_code.h"
+#include "esp_http_server.h"
+#include "http.h"
+#include "message.h"
+#include "morse.h"
 #include "morse_code_characters.h"
 #include "settings.h"
-#include "message.h"
 
 typedef struct {
     char message[MESSAGE_MAX_SIZE];
@@ -123,4 +125,18 @@ void send_morse_code(void) {
     } else {
         ESP_LOGI("SEND_MORSE", "Message sent to queue");
     }
+}
+
+esp_err_t morse_handler(httpd_req_t *req) {
+    ESP_LOGI("MORSE_CODE", "Handling /api/morse request...");
+    send_morse_code();
+
+    httpd_resp_set_type(req, "application/json");
+    httpd_resp_send(req, "{\"result\": \"Morse code sent\"}", HTTPD_RESP_USE_STRLEN);
+    return ESP_OK;
+}
+
+void register_morse_endpoints(void) {
+    register_html_page("/api/morse", HTTP_POST, morse_handler);
+    ESP_LOGI("MORSE_CODE", "Morse code API endpoints registered");
 }

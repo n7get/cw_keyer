@@ -3,6 +3,6 @@
 
 #include "esp_http_server.h"
 
-void register_api_endpoints(void);
+void register_status_endpoints(void);
 
 #endif // API_H
