@@ -1,10 +1,10 @@
 #include "morse.h"
-#include "driver/gpio.h"
 #include "esp_http_server.h"
 #include "esp_log.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/queue.h"
 #include "freertos/task.h"
+#include "gpio.h"
 #include "http.h"
 #include "message.h"
 #include "morse_code_characters.h"
@@ -12,20 +12,14 @@
 #include <string.h>
 
 typedef struct {
+    bool enable_key;
     char message[MESSAGE_MAX_SIZE];
 } morse_task_t;
 
-static int gpio_pin = -1;
 static QueueHandle_t morse_queue = NULL;
 static TaskHandle_t morse_task_handle = NULL;
 
 bool busy = false;
-
-void blink_led(int duration) {
-    gpio_set_level(gpio_pin, 1);
-    vTaskDelay(duration / portTICK_PERIOD_MS);
-    gpio_set_level(gpio_pin, 0);
-}
 
 void space(int duration) {
     vTaskDelay(duration / portTICK_PERIOD_MS);
@@ -51,7 +45,15 @@ void morse_code_task(void *arg) {
                     int *morse = char_to_morse(c);
 
                     for (int j = 0; morse[j] != END; j++) {
-                        blink_led(morse[j] * unit);
+                        if (task_data.enable_key) {
+                            key_down();
+                        }
+                        led_on();
+                        vTaskDelay(morse[j] * unit / portTICK_PERIOD_MS);
+                        if (task_data.enable_key) {
+                            key_up();
+                        }
+                        led_off();
 
                         if (morse[j + 1] != END) { // If not the last element
                             space(SPACE * unit);   // Space between DITs and DAHs
@@ -69,21 +71,9 @@ void morse_code_task(void *arg) {
     }
 }
 
-void morse_code_init(int pin) {
-    gpio_pin = pin;
-
-    gpio_config_t io_conf;
-    io_conf.intr_type = GPIO_INTR_DISABLE;
-    io_conf.mode = GPIO_MODE_OUTPUT;
-    io_conf.pin_bit_mask = (1ULL << gpio_pin);
-    io_conf.pull_down_en = GPIO_PULLDOWN_DISABLE;
-    io_conf.pull_up_en = GPIO_PULLUP_DISABLE;
-
-    gpio_config(&io_conf);
-
-    gpio_reset_pin(gpio_pin);
-    gpio_set_direction(gpio_pin, GPIO_MODE_OUTPUT);
-    gpio_set_level(gpio_pin, 0);
+void morse_code_init() {
+    key_init();
+    led_init();
 
     morse_queue = xQueueCreate(10, sizeof(morse_task_t));
     if (morse_queue == NULL) {
@@ -99,20 +89,15 @@ void morse_code_init(int pin) {
     ESP_LOGI("MORSE_INIT", "Morse code initialized");
 }
 
-void send_morse_code(void) {
+void queue_morse_code(char message[], bool enable_key) {
     if (morse_queue == NULL) {
         ESP_LOGE("SEND_MORSE", "Queue not initialized");
         return;
     }
 
     morse_task_t task_data;
-
-    // Retrieve the current message from NVS
-    esp_err_t err = get_message(task_data.message, sizeof(task_data.message));
-    if (err != ESP_OK) {
-        ESP_LOGE("SEND_MORSE", "Failed to get message: %s", esp_err_to_name(err));
-        return;
-    }
+    task_data.enable_key = enable_key;
+    strncpy(task_data.message, message, MESSAGE_MAX_SIZE);
 
     ESP_LOGI("SEND_MORSE", "Sending message: %s", task_data.message);
 
@@ -121,6 +106,20 @@ void send_morse_code(void) {
     } else {
         ESP_LOGI("SEND_MORSE", "Message sent to queue");
     }
+}
+
+void send_morse_code() {
+
+    char message[MESSAGE_MAX_SIZE];
+
+    // Retrieve the current message from NVS
+    esp_err_t err = get_message(message, sizeof(message));
+    if (err != ESP_OK) {
+        ESP_LOGE("SEND_MORSE", "Failed to get message: %s", esp_err_to_name(err));
+        return;
+    }
+
+    queue_morse_code(message, true);
 }
 
 esp_err_t morse_handler(httpd_req_t *req) {

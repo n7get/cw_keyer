@@ -1,5 +1,5 @@
 idf_component_register(
-	SRCS "button.c" "config.c" "http.c" "index.c" "main.c" "message.c" "morse.c" "morse_code_characters.c" "network.c" "settings.c" "status.c"
+	SRCS "button.c" "config.c" "gpio.c" "http.c" "index.c" "main.c" "message.c" "morse.c" "morse_code_characters.c" "network.c" "settings.c" "status.c"
 	PRIV_REQUIRES "esp_driver_gpio" 
 	PRIV_REQUIRES "esp_http_server" 
 	PRIV_REQUIRES "esp_wifi"

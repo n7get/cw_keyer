@@ -4,6 +4,7 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/FreeRTOSConfig.h"
 #include "freertos/task.h"
+#include "gpio.h"
 #include "http.h"
 #include "index.h"
 #include "message.h"
@@ -15,13 +16,12 @@
 #include "status.h"
 #include <stdio.h>
 
-#define MORSE_GPIO_PIN 2
-
 void app_main(void) {
     ESP_LOGI("MAIN", "Starting application");
 
     load_settings();
-    ESP_LOGI("MAIN", "Loaded settings: WPM=%d, AP SSID=%s, STA SSID=%s", wpm, ap_ssid, sta_ssid);
+    ESP_LOGI("MAIN", "Loaded settings: WPM=%d, AP SSID=%s, STA SSID=%s", wpm,
+             ap_ssid, sta_ssid);
 
     wifi_init();
 
@@ -38,7 +38,9 @@ void app_main(void) {
     register_settings_endpoints();
     register_status_endpoints();
 
-    morse_code_init(MORSE_GPIO_PIN);
+    morse_code_init();
+
+    queue_morse_code("READY", false);
 
     ESP_LOGI("MAIN", "Application started");
 }
