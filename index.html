@@ -81,7 +81,7 @@
         <label for="message">Message:</label>
         <input type="text" id="message" placeholder="Enter your message">
 
-        <button type="button" onclick="updateAndSendMorse()">Send Morse Code</button>
+        <button type="button" onclick="updateMessage()">Update Message</button>
     </form>
 
     <div id="status">
@@ -126,7 +126,7 @@
             }
         }
 
-        async function updateAndSendMorse() {
+        async function updateMessage() {
             const messageInput = document.getElementById('message').value;
 
             if (!messageInput) {
@@ -149,14 +149,6 @@
                     document.getElementById('statusText').innerText = updateData.result || 'Message updated successfully';
                     lastMessage = messageInput;
                 }
-
-                // Send the message as Morse code
-                const sendResponse = await fetch('/api/morse', { method: 'POST' });
-                if (!sendResponse.ok) {
-                    throw new Error('Failed to send Morse code');
-                }
-                const sendData = await sendResponse.json();
-                document.getElementById('statusText').innerText = sendData.result || 'Morse code sent successfully';
             } catch (error) {
                 console.error('Error:', error);
                 document.getElementById('statusText').innerText = 'Error: ' + error.message;

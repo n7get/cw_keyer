@@ -88,7 +88,7 @@ esp_err_t index_handler(httpd_req_t *req) {
         "        <label for=\"message\">Message:</label>\n"
         "        <input type=\"text\" id=\"message\" placeholder=\"Enter your message\">\n"
         "\n"
-        "        <button type=\"button\" onclick=\"updateAndSendMorse()\">Send Morse Code</button>\n"
+        "        <button type=\"button\" onclick=\"updateMessage()\">Update Message</button>\n"
         "    </form>\n"
         "\n"
         "    <div id=\"status\">\n"
@@ -133,7 +133,7 @@ esp_err_t index_handler(httpd_req_t *req) {
         "            }\n"
         "        }\n"
         "\n"
-        "        async function updateAndSendMorse() {\n"
+        "        async function updateMessage() {\n"
         "            const messageInput = document.getElementById('message').value;\n"
         "\n"
         "            if (!messageInput) {\n"
@@ -156,14 +156,6 @@ esp_err_t index_handler(httpd_req_t *req) {
         "                    document.getElementById('statusText').innerText = updateData.result || 'Message updated successfully';\n"
         "                    lastMessage = messageInput;\n"
         "                }\n"
-        "\n"
-        "                // Send the message as Morse code\n"
-        "                const sendResponse = await fetch('/api/morse', { method: 'POST' });\n"
-        "                if (!sendResponse.ok) {\n"
-        "                    throw new Error('Failed to send Morse code');\n"
-        "                }\n"
-        "                const sendData = await sendResponse.json();\n"
-        "                document.getElementById('statusText').innerText = sendData.result || 'Morse code sent successfully';\n"
         "            } catch (error) {\n"
         "                console.error('Error:', error);\n"
         "                document.getElementById('statusText').innerText = 'Error: ' + error.message;\n"
@@ -183,7 +175,6 @@ esp_err_t index_handler(httpd_req_t *req) {
         "    </script>\n"
         "</body>\n"
         "</html>\n";
-
     httpd_resp_set_type(req, "text/html");
     httpd_resp_send(req, html_text, strlen(html_text));
     return ESP_OK;
