@@ -1,23 +1,17 @@
 #include "button.h"
-#include "config.h"
 #include "esp_log.h"
 #include "freertos/FreeRTOS.h"
-#include "freertos/FreeRTOSConfig.h"
-#include "freertos/task.h"
-#include "gpio.h"
 #include "http.h"
 #include "index.h"
 #include "message.h"
 #include "morse.h"
-#include "morse_code_characters.h"
 #include "network.h"
-#include "nvs_flash.h"
 #include "settings.h"
 #include "status.h"
-#include <stdio.h>
 
 void app_main(void) {
     ESP_LOGI("MAIN", "Starting application");
+    ESP_LOGI("MAIN", "FreeRTOS version: %s", tskKERNEL_VERSION_NUMBER);
 
     load_settings();
     ESP_LOGI("MAIN", "Loaded settings: WPM=%d, AP SSID=%s, STA SSID=%s", wpm,
