@@ -15,11 +15,12 @@ char ap_ssid[32] = "cw_keyer";
 char ap_password[64] = "";
 char sta_ssid[32] = "";
 char sta_password[64] = "";
+char radio_model[16] = "MOCK"; // Default radio model
 
 void load_settings(void) {
     ESP_ERROR_CHECK(nvs_flash_init());
 
-    u_int8_t v;
+    uint8_t v;
     if (get_u8("wpm", &v) == ESP_OK) {
         ESP_LOGI(TAG, "Loaded WPM from NVS: %d", v);
         wpm = (int)v;
@@ -59,6 +60,14 @@ void load_settings(void) {
         ESP_LOGW(TAG, "Failed to load STA Password from NVS, using default: %s", sta_password);
         set_string("sta_password", sta_password);
         ESP_LOGI(TAG, "Default STA Password saved to NVS: %s", sta_password);
+    }
+
+    if (get_string("radio_model", radio_model, sizeof(radio_model)) == ESP_OK) {
+        ESP_LOGI(TAG, "Loaded radio model from NVS: %s", radio_model);
+    } else {
+        ESP_LOGW(TAG, "Failed to load radio model from NVS, using default: %s", radio_model);
+        set_string("radio_model", radio_model);
+        ESP_LOGI(TAG, "Default radio model saved to NVS: %s", radio_model);
     }
 }
 
@@ -150,6 +159,18 @@ static esp_err_t set_settings_handler(httpd_req_t *req) {
         ESP_LOGE(TAG, "STA Password parameter missing or invalid");
     }
 
+    cJSON *radio_model_json = cJSON_GetObjectItem(json, "radio_model");
+    if (radio_model_json && cJSON_IsString(radio_model_json)) {
+        if (strcmp(radio_model, radio_model_json->valuestring) != 0) {
+            strncpy(radio_model, radio_model_json->valuestring, sizeof(radio_model) - 1);
+            radio_model[sizeof(radio_model) - 1] = '\0';
+            set_string("radio_model", radio_model);
+            ESP_LOGI(TAG, "Radio model updated and saved to NVS: %s", radio_model);
+        }
+    } else {
+        ESP_LOGE(TAG, "Radio model parameter missing or invalid");
+    }
+
     cJSON_Delete(json);
 
     const char *response = "{\"result\": \"Settings updated successfully\"}";
@@ -174,6 +195,7 @@ static esp_err_t get_settings_handler(httpd_req_t *req) {
     cJSON_AddStringToObject(json, "ap_password", ap_password);
     cJSON_AddStringToObject(json, "sta_ssid", sta_ssid);
     cJSON_AddStringToObject(json, "sta_password", sta_password);
+    cJSON_AddStringToObject(json, "radio_model", radio_model);
 
     const char *response = cJSON_Print(json);
     if (!response) {
@@ -244,7 +266,7 @@ static esp_err_t settings_page_handler(httpd_req_t *req) {
         "        label {\n"
         "            margin-top: 10px;\n"
         "        }\n"
-        "        input {\n"
+        "        input, select {\n"
         "            margin-bottom: 10px;\n"
         "            padding: 5px;\n"
         "            width: 100%;\n"
@@ -290,6 +312,12 @@ static esp_err_t settings_page_handler(httpd_req_t *req) {
         "        <label for=\"sta_password\">STA Password:</label>\n"
         "        <input type=\"password\" id=\"sta_password\" name=\"sta_password\" placeholder=\"Enter STA Password\">\n"
         "\n"
+        "        <label for=\"radio_model\">Radio Model:</label>\n"
+        "        <select id=\"radio_model\" name=\"radio_model\">\n"
+        "            <option value=\"MOCK\">Mock Radio</option>\n"
+        "            <option value=\"FT-857D\">FT-857D</option>\n"
+        "        </select>\n"
+        "\n"
         "        <button type=\"button\" onclick=\"updateSettings()\">Update Settings</button>\n"
         "    </form>\n"
         "\n"
@@ -317,6 +345,7 @@ static esp_err_t settings_page_handler(httpd_req_t *req) {
         "                document.getElementById('ap_password').value = data.ap_password;\n"
         "                document.getElementById('sta_ssid').value = data.sta_ssid;\n"
         "                document.getElementById('sta_password').value = data.sta_password;\n"
+        "                document.getElementById('radio_model').value = data.radio_model;\n"
         "                document.getElementById('statusText').innerText = 'Settings loaded successfully';\n"
         "            } catch (error) {\n"
         "                console.error('Error fetching settings:', error);\n"
@@ -332,6 +361,7 @@ static esp_err_t settings_page_handler(httpd_req_t *req) {
         "                ap_password: document.getElementById('ap_password').value,\n"
         "                sta_ssid: document.getElementById('sta_ssid').value,\n"
         "                sta_password: document.getElementById('sta_password').value,\n"
+        "                radio_model: document.getElementById('radio_model').value,\n"
         "            };\n"
         "\n"
         "            try {\n"

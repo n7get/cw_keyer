@@ -8,19 +8,22 @@
 #include "network.h"
 #include "settings.h"
 #include "status.h"
+#include "cat.h"
+
+#define TAG "MAIN"
 
 void app_main(void) {
-    ESP_LOGI("MAIN", "Starting application");
-    ESP_LOGI("MAIN", "FreeRTOS version: %s", tskKERNEL_VERSION_NUMBER);
+    ESP_LOGI(TAG, "Starting application");
+    ESP_LOGI(TAG, "FreeRTOS version: %s", tskKERNEL_VERSION_NUMBER);
 
     load_settings();
-    ESP_LOGI("MAIN", "Loaded settings: WPM=%d, AP SSID=%s, STA SSID=%s", wpm,
+    ESP_LOGI(TAG, "Loaded settings: WPM=%d, AP SSID=%s, STA SSID=%s", wpm,
              ap_ssid, sta_ssid);
 
     wifi_init();
 
     if (!start_webserver()) {
-        ESP_LOGE("MAIN", "Failed to start web server");
+        ESP_LOGE(TAG, "Failed to start web server");
         return;
     }
 
@@ -37,4 +40,5 @@ void app_main(void) {
     queue_morse_code("READY", false);
 
     ESP_LOGI("MAIN", "Application started");
+    init_radio(radio_model);
 }

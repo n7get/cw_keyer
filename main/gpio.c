@@ -1,11 +1,9 @@
 #include "driver/gpio.h"
 #include "esp_log.h"
 #include "freertos/FreeRTOS.h"
+#include "pins.h"
 
 static const char *TAG = "KEY";
-
-#define KEY_GPIO_PIN 2
-#define LED_GPIO_PIN 3
 
 // Initialize the GPIO pin for Morse code output
 void gpio_init(int gpio_pin) {
