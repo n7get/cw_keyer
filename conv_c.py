@@ -9,7 +9,7 @@ def html_to_c_string(html_file):
     for line in lines:
         # Strip trailing whitespace and escape double quotes
         escaped_line = line.rstrip().replace('"', '\\"')
-        c_string += f'"{escaped_line}\\n"\n'
+        c_string += f'        "{escaped_line}\\n"\n'
 
     return c_string + ';'
 

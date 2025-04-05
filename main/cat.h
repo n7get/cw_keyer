@@ -11,7 +11,7 @@
 #define BUF_SIZE 1024
 
 // Function prototypes
-esp_err_t cat_init(int baud_rate);
+esp_err_t cat_init(void);
 esp_err_t cat_send(const uint8_t *command, size_t command_size);
 esp_err_t cat_recv(uint8_t *response, size_t response_size);
 esp_err_t cat_recv_until(uint8_t *response, size_t response_size, char terminator);

@@ -32,7 +32,7 @@
 
 // Initialize the UART driver
 static esp_err_t ft991a_init_radio() {
-    if (cat_init(38400) != ESP_OK) {
+    if (cat_init() != ESP_OK) {
         ESP_LOGE(TAG, "Failed to initialize UART for FT-857D");
         return ESP_FAIL;
     }

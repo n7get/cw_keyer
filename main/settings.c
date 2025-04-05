@@ -16,14 +16,15 @@ char ap_password[64] = "";
 char sta_ssid[32] = "";
 char sta_password[64] = "";
 char radio_model[16] = "MOCK"; // Default radio model
+int baud_rate = 38400; // Default baud rate
 
 void load_settings(void) {
     ESP_ERROR_CHECK(nvs_flash_init());
 
-    uint8_t v;
-    if (get_u8("wpm", &v) == ESP_OK) {
-        ESP_LOGI(TAG, "Loaded WPM from NVS: %d", v);
-        wpm = (int)v;
+    uint8_t u8_v;
+    if (get_u8("wpm", &u8_v) == ESP_OK) {
+        ESP_LOGI(TAG, "Loaded WPM from NVS: %d", u8_v);
+        wpm = (int)u8_v;
     } else {
         ESP_LOGW(TAG, "Failed to load WPM from NVS, using default: %d", wpm);
         set_u8("wpm", (uint8_t)wpm);
@@ -68,6 +69,15 @@ void load_settings(void) {
         ESP_LOGW(TAG, "Failed to load radio model from NVS, using default: %s", radio_model);
         set_string("radio_model", radio_model);
         ESP_LOGI(TAG, "Default radio model saved to NVS: %s", radio_model);
+    }
+
+    uint32_t u32_v;
+    if (get_u32("baud_rate", &u32_v) == ESP_OK) {
+        ESP_LOGI(TAG, "Loaded baud rate from NVS: %d", u32_v);
+        baud_rate = (int)u32_v;
+    } else {
+        ESP_LOGW(TAG, "Failed to load baud rate from NVS, using default: %d", baud_rate);
+        set_u32("baud_rate", (uint32_t)baud_rate);
     }
 }
 
@@ -171,6 +181,18 @@ static esp_err_t set_settings_handler(httpd_req_t *req) {
         ESP_LOGE(TAG, "Radio model parameter missing or invalid");
     }
 
+    cJSON *baud_rate_json = cJSON_GetObjectItem(json, "baud_rate");
+    if (baud_rate_json && cJSON_IsNumber(baud_rate_json)) {
+        int new_baud_rate = baud_rate_json->valueint;
+        if (new_baud_rate != baud_rate) {
+            baud_rate = new_baud_rate;
+            set_u32("baud_rate", (uint32_t)baud_rate);
+            ESP_LOGI(TAG, "Baud rate updated and saved to NVS: %d", baud_rate);
+        }
+    } else {
+        ESP_LOGE(TAG, "Baud rate parameter missing or invalid");
+    }
+
     cJSON_Delete(json);
 
     const char *response = "{\"result\": \"Settings updated successfully\"}";
@@ -196,6 +218,7 @@ static esp_err_t get_settings_handler(httpd_req_t *req) {
     cJSON_AddStringToObject(json, "sta_ssid", sta_ssid);
     cJSON_AddStringToObject(json, "sta_password", sta_password);
     cJSON_AddStringToObject(json, "radio_model", radio_model);
+    cJSON_AddNumberToObject(json, "baud_rate", baud_rate);
 
     const char *response = cJSON_Print(json);
     if (!response) {
@@ -318,6 +341,14 @@ static esp_err_t settings_page_handler(httpd_req_t *req) {
         "            <option value=\"FT-857D\">FT-857D</option>\n"
         "        </select>\n"
         "\n"
+        "        <label for=\"baud_rate\">Baud Rate:</label>\n"
+        "        <select id=\"baud_rate\" name=\"baud_rate\">\n"
+        "            <option value=\"4800\">4800</option>\n"
+        "            <option value=\"9600\">9600</option>\n"
+        "            <option value=\"19200\">19200</option>\n"
+        "            <option value=\"38400\">38400</option>\n"
+        "        </select>\n"
+        "\n"
         "        <button type=\"button\" onclick=\"updateSettings()\">Update Settings</button>\n"
         "    </form>\n"
         "\n"
@@ -346,6 +377,7 @@ static esp_err_t settings_page_handler(httpd_req_t *req) {
         "                document.getElementById('sta_ssid').value = data.sta_ssid;\n"
         "                document.getElementById('sta_password').value = data.sta_password;\n"
         "                document.getElementById('radio_model').value = data.radio_model;\n"
+        "                document.getElementById('baud_rate').value = data.baud_rate;\n"
         "                document.getElementById('statusText').innerText = 'Settings loaded successfully';\n"
         "            } catch (error) {\n"
         "                console.error('Error fetching settings:', error);\n"
@@ -362,6 +394,7 @@ static esp_err_t settings_page_handler(httpd_req_t *req) {
         "                sta_ssid: document.getElementById('sta_ssid').value,\n"
         "                sta_password: document.getElementById('sta_password').value,\n"
         "                radio_model: document.getElementById('radio_model').value,\n"
+        "                baud_rate: parseInt(document.getElementById('baud_rate').value, 10),\n"
         "            };\n"
         "\n"
         "            try {\n"

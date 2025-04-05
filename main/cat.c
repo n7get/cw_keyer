@@ -4,6 +4,7 @@
 #include "freertos/queue.h"
 #include "freertos/task.h"
 #include "pins.h"
+#include "settings.h"
 #include <string.h>
 
 #define TAG "UART"
@@ -76,7 +77,7 @@ static void uart_event_task(void *pvParameters) {
 }
 
 // Initialize the UART driver with interrupt-based reading
-esp_err_t cat_init(int baud_rate) {
+esp_err_t cat_init(void) {
     // Create the data queue
     data_queue = xQueueCreate(DATA_QUEUE_SIZE, sizeof(uint8_t));
     if (data_queue == NULL) {

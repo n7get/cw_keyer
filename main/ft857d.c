@@ -49,7 +49,7 @@
 
 // Initialize the FT-857D radio
 static esp_err_t ft857d_init_radio() {
-    if (cat_init(4800) != ESP_OK) {
+    if (cat_init() != ESP_OK) {
         ESP_LOGE(TAG, "Failed to initialize UART for FT-857D");
         return ESP_FAIL;
     }
