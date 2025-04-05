@@ -1,8 +1,8 @@
 #include "cat.h"
 #include "driver/uart.h"
 #include "esp_log.h"
-#include "freertos/task.h"
 #include "freertos/queue.h"
+#include "freertos/task.h"
 #include "pins.h"
 #include <string.h>
 
@@ -27,46 +27,46 @@ static void uart_event_task(void *pvParameters) {
         // Wait for UART events
         if (xQueueReceive(uart_queue, (void *)&event, portMAX_DELAY)) {
             switch (event.type) {
-                case UART_DATA:
-                    ESP_LOGI(TAG, "Data received: %d bytes", event.size);
-                    if (event.size > BUF_SIZE) {
-                        ESP_LOGE(TAG, "Received data length exceeds buffer size");
-                        break;
-                    }
-                    int len = uart_read_bytes(UART_NUM, data, event.size, portMAX_DELAY);
-                    if (len > 0) {
-                        for (int i = 0; i < len; i++) {
-                            if (xQueueSend(data_queue, &data[i], portMAX_DELAY) != pdPASS) {
-                                ESP_LOGE(TAG, "Data queue overflow");
-                                break;
-                            }
+            case UART_DATA:
+                ESP_LOGI(TAG, "Data received: %d bytes", event.size);
+                if (event.size > BUF_SIZE) {
+                    ESP_LOGE(TAG, "Received data length exceeds buffer size");
+                    break;
+                }
+                int len = uart_read_bytes(UART_NUM, data, event.size, portMAX_DELAY);
+                if (len > 0) {
+                    for (int i = 0; i < len; i++) {
+                        if (xQueueSend(data_queue, &data[i], portMAX_DELAY) != pdPASS) {
+                            ESP_LOGE(TAG, "Data queue overflow");
+                            break;
                         }
                     }
-                    break;
+                }
+                break;
 
-                case UART_FIFO_OVF:
-                    ESP_LOGW(TAG, "UART FIFO overflow");
-                    uart_flush_input(UART_NUM);
-                    xQueueReset(uart_queue);
-                    break;
+            case UART_FIFO_OVF:
+                ESP_LOGW(TAG, "UART FIFO overflow");
+                uart_flush_input(UART_NUM);
+                xQueueReset(uart_queue);
+                break;
 
-                case UART_BUFFER_FULL:
-                    ESP_LOGW(TAG, "UART buffer full");
-                    uart_flush_input(UART_NUM);
-                    xQueueReset(uart_queue);
-                    break;
+            case UART_BUFFER_FULL:
+                ESP_LOGW(TAG, "UART buffer full");
+                uart_flush_input(UART_NUM);
+                xQueueReset(uart_queue);
+                break;
 
-                case UART_PARITY_ERR:
-                    ESP_LOGE(TAG, "UART parity error");
-                    break;
+            case UART_PARITY_ERR:
+                ESP_LOGE(TAG, "UART parity error");
+                break;
 
-                case UART_FRAME_ERR:
-                    ESP_LOGE(TAG, "UART frame error");
-                    break;
+            case UART_FRAME_ERR:
+                ESP_LOGE(TAG, "UART frame error");
+                break;
 
-                default:
-                    ESP_LOGW(TAG, "Unhandled UART event type: %d", event.type);
-                    break;
+            default:
+                ESP_LOGW(TAG, "Unhandled UART event type: %d", event.type);
+                break;
             }
         }
     }

@@ -1,9 +1,9 @@
-#include <stdio.h>
-#include "esp_log.h"
 #include "tune.h"
-#include "radio.h"
-#include <string.h>
+#include "esp_log.h"
 #include "gpio.h"
+#include "radio.h"
+#include <stdio.h>
+#include <string.h>
 
 #define TAG "TUNE"
 #define TUNE_MODE "CW"
@@ -16,16 +16,16 @@ typedef struct {
 } ham_band_t;
 
 static const ham_band_t ham_bands[] = {
-    {1800000, 2000000},  // 160m
-    {3500000, 4000000},  // 80m
-    {7000000, 7300000},  // 40m
-    {10100000, 10150000}, // 30m
-    {14000000, 14350000}, // 20m
-    {18068000, 18168000}, // 17m
-    {21000000, 21450000}, // 15m
-    {24890000, 24990000}, // 12m
-    {28000000, 29700000}, // 10m
-    {50000000, 54000000}, // 6m
+    {1800000, 2000000},     // 160m
+    {3500000, 4000000},     // 80m
+    {7000000, 7300000},     // 40m
+    {10100000, 10150000},   // 30m
+    {14000000, 14350000},   // 20m
+    {18068000, 18168000},   // 17m
+    {21000000, 21450000},   // 15m
+    {24890000, 24990000},   // 12m
+    {28000000, 29700000},   // 10m
+    {50000000, 54000000},   // 6m
     {144000000, 148000000}, // 2m
     {420000000, 450000000}, // 70cm
 };
@@ -75,7 +75,7 @@ void tune_start(tune_data_t *tune_data) {
     ESP_LOGI(TAG, "Power set to: %u", TUNE_POWER);
 
     // Adjust frequency for tuning
-    const char* mode_str = mode_to_string(tune_data->mode);
+    const char *mode_str = mode_to_string(tune_data->mode);
     uint32_t tune_offset = 5000;
 
     if (strcmp(mode_str, "USB") == 0) {

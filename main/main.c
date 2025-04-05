@@ -6,9 +6,9 @@
 #include "message.h"
 #include "morse.h"
 #include "network.h"
+#include "radio.h"
 #include "settings.h"
 #include "status.h"
-#include "radio.h"
 
 #define TAG "MAIN"
 

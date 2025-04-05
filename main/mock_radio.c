@@ -1,17 +1,17 @@
-#include "radio.h"
-#include "esp_log.h"
 #include "esp_err.h"
+#include "esp_log.h"
+#include "radio.h"
 #include <string.h>
 
 // Forward declaration
-static const char* mock_mode_to_string(uint8_t mode);
-static uint8_t mock_string_to_mode(const char* mode_str);
+static const char *mock_mode_to_string(uint8_t mode);
+static uint8_t mock_string_to_mode(const char *mode_str);
 
 #define TAG "MOCK_RADIO"
 
 // Mock radio state
 static uint32_t mock_frequency = 7280000;
-static char* mock_mode = "LSB";
+static char *mock_mode = "LSB";
 static bool mock_ptt = false;
 static uint8_t mock_power = 50; // Default power level (50%)
 

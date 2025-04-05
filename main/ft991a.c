@@ -1,10 +1,10 @@
-#include <stdio.h>
-#include <string.h>
+#include "cat.h"
 #include "driver/uart.h"
 #include "esp_log.h"
-#include "radio.h"
 #include "pins.h"
-#include "cat.h"
+#include "radio.h"
+#include <stdio.h>
+#include <string.h>
 
 #define TAG "FT991A"
 
@@ -127,7 +127,7 @@ static esp_err_t ft991a_set_mode(uint8_t mode) {
 static esp_err_t ft991a_get_power(uint8_t *power) {
     char response[BUF_SIZE] = {0};
 
-    if ( cat_send((uint8_t *)CMD_GET_POWER, strlen(CMD_GET_POWER)) != ESP_OK) {
+    if (cat_send((uint8_t *)CMD_GET_POWER, strlen(CMD_GET_POWER)) != ESP_OK) {
         ESP_LOGE(TAG, "Failed to send get power command");
         return ESP_FAIL;
     }
@@ -159,7 +159,7 @@ static esp_err_t ft991a_set_power(uint8_t power) {
     char command[BUF_SIZE] = {0};
     size_t len = snprintf(command, sizeof(command), CMD_SET_POWER, power);
 
-    if( cat_send((uint8_t *)command, len) != ESP_OK) {
+    if (cat_send((uint8_t *)command, len) != ESP_OK) {
         ESP_LOGE(TAG, "Failed to set power command");
         return ESP_FAIL;
     }
@@ -173,7 +173,7 @@ static esp_err_t ft991a_set_power(uint8_t power) {
 static esp_err_t ft991a_set_ptt(bool enable) {
     const char *command = enable ? CMD_PTT_ON : CMD_PTT_OFF;
 
-    if(cat_send((uint8_t *)command, strlen(command)) != ESP_OK) {
+    if (cat_send((uint8_t *)command, strlen(command)) != ESP_OK) {
         ESP_LOGE(TAG, "Failed to send PTT command");
         return ESP_FAIL;
     }

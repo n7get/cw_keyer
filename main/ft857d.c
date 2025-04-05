@@ -1,10 +1,10 @@
-#include <stdio.h>
-#include <string.h>
+#include "bcd.h"
+#include "cat.h"
 #include "driver/uart.h"
 #include "esp_log.h"
 #include "radio.h"
-#include "bcd.h"
-#include "cat.h"
+#include <stdio.h>
+#include <string.h>
 
 #define CAT_COMMAND_SIZE 5           // CAT commands and responses are always 5 bytes
 
@@ -93,7 +93,7 @@ static esp_err_t ft857d_get_frequency(uint32_t *frequency) {
 // Get mode from the FT-857D
 static esp_err_t ft857d_get_mode(uint8_t *mode) {
     uint8_t response[CAT_COMMAND_SIZE] = {0, 0, 0, 0, 0};
-    
+
     if (get_frequency_and_mode(response) != ESP_OK) {
         ESP_LOGE(TAG, "Failed to get frequency and mode");
         return ESP_FAIL;

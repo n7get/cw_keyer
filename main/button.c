@@ -4,17 +4,17 @@
 #include "freertos/task.h"
 #include "freertos/timers.h"
 #include "morse.h"
+#include "pins.h"
 #include "tune.h"
 #include <stdio.h>
-#include "pins.h"
 
 #define LONG_PRESS_THRESHOLD_MS 1000 // Threshold for long press in milliseconds
 
 static const char *TAG = "BUTTON";
 
 static TimerHandle_t long_press_timer; // Timer to detect long press
-static bool is_long_press = false;    // Flag to indicate a long press
-static tune_data_t tune_data;         // Data to store frequency and mode
+static bool is_long_press = false;     // Flag to indicate a long press
+static tune_data_t tune_data;          // Data to store frequency and mode
 
 // ISR handler for the button press
 static void IRAM_ATTR button_isr_handler(void *arg) {
