@@ -8,7 +8,7 @@
 #include "tune.h"
 #include <stdio.h>
 
-#define LONG_PRESS_THRESHOLD_MS 1000 // Threshold for long press in milliseconds
+#define LONG_PRESS_THRESHOLD_MS 500 // Threshold for long press in milliseconds
 
 static const char *TAG = "BUTTON";
 
