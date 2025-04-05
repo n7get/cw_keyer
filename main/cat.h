@@ -1,38 +1,19 @@
-#ifndef CAT_H
-#define CAT_H
+#ifndef UART_H
+#define UART_H
 
-#include <stdint.h>
-#include <stdbool.h>
 #include "esp_err.h"
+#include <stddef.h>
+#include <stdint.h>
 
-// Radio operations interface
-typedef struct {
-    esp_err_t (*init_radio)(void);
-    esp_err_t (*get_frequency)(uint32_t *frequency);
-    esp_err_t (*set_frequency)(uint32_t frequency);
-    esp_err_t (*get_mode)(uint8_t *mode);
-    esp_err_t (*set_mode)(uint8_t mode);
-    esp_err_t (*get_power)(uint8_t *power);
-    esp_err_t (*set_power)(uint8_t power);
-    esp_err_t (*set_ptt)(bool enable);
-    uint8_t (*string_to_mode)(const char* mode);
-    const char* (*mode_to_string)(uint8_t mode);
-} radio_operations_t;
+// UART configuration
+#define UART_NUM UART_NUM_1
+#define UART_BAUD_RATE 4800
+#define BUF_SIZE 1024
 
-// Function to initialize the radio with a specific implementation
-esp_err_t init_radio(const char* radio_model);
+// Function prototypes
+esp_err_t cat_init(int baud_rate);
+esp_err_t cat_send(const uint8_t *command, size_t command_size);
+esp_err_t cat_recv(uint8_t *response, size_t response_size);
+esp_err_t cat_recv_until(uint8_t *response, size_t response_size, char terminator);
 
-// Function prototypes for radio operations
-esp_err_t get_frequency(uint32_t *frequency);
-esp_err_t set_frequency(uint32_t frequency);
-esp_err_t get_mode(uint8_t *mode);
-esp_err_t set_mode(uint8_t mode);
-esp_err_t set_ptt(bool enable);
-esp_err_t get_power(uint8_t *power);
-esp_err_t set_power(uint8_t power);
-
-// Function prototypes for mode conversion
-uint8_t string_to_mode(const char* mode_str);
-const char* mode_to_string(uint8_t mode);
-
-#endif // CAT_H
+#endif // UART_H

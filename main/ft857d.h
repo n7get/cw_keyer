@@ -1,7 +1,7 @@
 #ifndef FT857D_H
 #define FT857D_H
 
-#include "cat.h"
+#include "radio.h"
 
 extern const radio_operations_t ft857d_ops;
 

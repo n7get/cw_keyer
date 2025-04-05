@@ -2,14 +2,11 @@
 #include <string.h>
 #include "driver/uart.h"
 #include "esp_log.h"
-#include "cat.h"
+#include "radio.h"
 #include "pins.h"
+#include "cat.h"
 
 #define TAG "FT991A"
-#define UART_NUM UART_NUM_1          // Use UART2 for FT-991A
-#define UART_BAUD_RATE 38400         // FT-991A default baud rate
-#define BUF_SIZE 1024                // Buffer size for UART
-#define CAT_COMMAND_SIZE 5           // CAT commands and responses are always 5 bytes
 
 // CAT command definitions for FT-991A
 #define CMD_GET_FREQ       "FA;"     // Get frequency
@@ -35,26 +32,8 @@
 
 // Initialize the UART driver
 static esp_err_t ft991a_init_radio() {
-    uart_config_t uart_config = {
-        .baud_rate = UART_BAUD_RATE,
-        .data_bits = UART_DATA_8_BITS,
-        .parity = UART_PARITY_DISABLE,
-        .stop_bits = UART_STOP_BITS_1,
-        .flow_ctrl = UART_HW_FLOWCTRL_DISABLE,
-    };
-
-    if (uart_param_config(UART_NUM, &uart_config) != ESP_OK) {
-        ESP_LOGE(TAG, "Failed to configure UART parameters");
-        return ESP_FAIL;
-    }
-
-    if (uart_set_pin(UART_NUM, TXD_PIN, RXD_PIN, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE) != ESP_OK) {
-        ESP_LOGE(TAG, "Failed to set UART pins");
-        return ESP_FAIL;
-    }
-
-    if (uart_driver_install(UART_NUM, BUF_SIZE * 2, 0, 0, NULL, 0) != ESP_OK) {
-        ESP_LOGE(TAG, "Failed to install UART driver");
+    if (cat_init(38400) != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to initialize UART for FT-857D");
         return ESP_FAIL;
     }
 
@@ -62,41 +41,17 @@ static esp_err_t ft991a_init_radio() {
     return ESP_OK;
 }
 
-// Send a CAT command
-static esp_err_t send_cat_command(const char *command) {
-    int bytes_written = uart_write_bytes(UART_NUM, command, strlen(command));
-    if (bytes_written < 0) {
-        ESP_LOGE(TAG, "Failed to write CAT command");
-        return ESP_FAIL;
-    }
-
-    vTaskDelay(pdMS_TO_TICKS(100)); // 100 ms delay
-    ESP_LOGI(TAG, "CAT command sent: %s", command);
-    return ESP_OK;
-}
-
-// Read a CAT response
-static esp_err_t read_cat_response(char *response, size_t response_size) {
-    int read_len = uart_read_bytes(UART_NUM, (uint8_t *)response, response_size - 1, pdMS_TO_TICKS(1000)); // 1-second timeout
-    if (read_len <= 0) {
-        ESP_LOGE(TAG, "Failed to read CAT response");
-        return ESP_FAIL;
-    }
-
-    response[read_len] = '\0'; // Null-terminate the response
-    ESP_LOGI(TAG, "CAT response received: %s", response);
-    return ESP_OK;
-}
-
 // Get frequency from the FT-991A
 static esp_err_t ft991a_get_frequency(uint32_t *frequency) {
     char response[BUF_SIZE] = {0};
 
-    if (send_cat_command(CMD_GET_FREQ) != ESP_OK) {
+    if (cat_send((uint8_t *)CMD_GET_FREQ, strlen(CMD_GET_FREQ)) != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to send get frequency command");
         return ESP_FAIL;
     }
 
-    if (read_cat_response(response, sizeof(response)) != ESP_OK) {
+    if (cat_recv_until((uint8_t *)response, sizeof(response), ';') != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to read get frequency response");
         return ESP_FAIL;
     }
 
@@ -114,12 +69,13 @@ static esp_err_t ft991a_get_frequency(uint32_t *frequency) {
 static esp_err_t ft991a_set_frequency(uint32_t frequency) {
     char command[BUF_SIZE] = {0};
 
-    snprintf(command, sizeof(command), CMD_SET_FREQ, frequency);
+    size_t len = snprintf(command, sizeof(command), CMD_SET_FREQ, frequency);
 
-    if (send_cat_command(command) != ESP_OK) {
+    if (cat_send((uint8_t *)command, len) != ESP_OK) {
         ESP_LOGE(TAG, "Failed to set frequency");
         return ESP_FAIL;
     }
+    ESP_LOGI(TAG, "Set frequency command sent: %s", command);
 
     return ESP_OK;
 }
@@ -128,11 +84,17 @@ static esp_err_t ft991a_set_frequency(uint32_t frequency) {
 static esp_err_t ft991a_get_mode(uint8_t *mode) {
     char response[BUF_SIZE] = {0};
 
-    if (send_cat_command(CMD_GET_MODE) != ESP_OK) {
+    if (cat_send((uint8_t *)CMD_GET_MODE, strlen(CMD_GET_MODE)) != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to send get mode command");
         return ESP_FAIL;
     }
 
-    if (read_cat_response(response, sizeof(response)) != ESP_OK) {
+    if (cat_recv_until((uint8_t *)response, sizeof(response), ';') != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to read get mode response");
+        return ESP_FAIL;
+    }
+
+    if (cat_recv_until((uint8_t *)response, sizeof(response), ';') != ESP_OK) {
         return ESP_FAIL;
     }
 
@@ -150,12 +112,13 @@ static esp_err_t ft991a_get_mode(uint8_t *mode) {
 static esp_err_t ft991a_set_mode(uint8_t mode) {
     char command[BUF_SIZE] = {0};
 
-    snprintf(command, sizeof(command), CMD_SET_MODE, mode);
+    size_t len = snprintf(command, sizeof(command), CMD_SET_MODE, mode);
 
-    if (send_cat_command(command) != ESP_OK) {
-        ESP_LOGE(TAG, "Failed to set mode");
+    if (cat_send((uint8_t *)command, len) != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to set mode command");
         return ESP_FAIL;
     }
+    ESP_LOGI(TAG, "Set mode command sent: %s", command);
 
     return ESP_OK;
 }
@@ -164,11 +127,13 @@ static esp_err_t ft991a_set_mode(uint8_t mode) {
 static esp_err_t ft991a_get_power(uint8_t *power) {
     char response[BUF_SIZE] = {0};
 
-    if (send_cat_command(CMD_GET_POWER) != ESP_OK) {
+    if ( cat_send((uint8_t *)CMD_GET_POWER, strlen(CMD_GET_POWER)) != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to send get power command");
         return ESP_FAIL;
     }
 
-    if (read_cat_response(response, sizeof(response)) != ESP_OK) {
+    if (cat_recv_until((uint8_t *)response, sizeof(response), ';') != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to read get power response");
         return ESP_FAIL;
     }
 
@@ -192,12 +157,13 @@ static esp_err_t ft991a_set_power(uint8_t power) {
     }
 
     char command[BUF_SIZE] = {0};
-    snprintf(command, sizeof(command), CMD_SET_POWER, power);
+    size_t len = snprintf(command, sizeof(command), CMD_SET_POWER, power);
 
-    if (send_cat_command(command) != ESP_OK) {
-        ESP_LOGE(TAG, "Failed to set power level");
+    if( cat_send((uint8_t *)command, len) != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to set power command");
         return ESP_FAIL;
     }
+    ESP_LOGI(TAG, "Set power command sent: %s", command);
 
     ESP_LOGI(TAG, "Power level set to: %u%%", power);
     return ESP_OK;
@@ -207,10 +173,11 @@ static esp_err_t ft991a_set_power(uint8_t power) {
 static esp_err_t ft991a_set_ptt(bool enable) {
     const char *command = enable ? CMD_PTT_ON : CMD_PTT_OFF;
 
-    if (send_cat_command(command) != ESP_OK) {
-        ESP_LOGE(TAG, "Failed to set PTT");
+    if(cat_send((uint8_t *)command, strlen(command)) != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to send PTT command");
         return ESP_FAIL;
     }
+    ESP_LOGI(TAG, "PTT command sent: %s", command);
 
     return ESP_OK;
 }

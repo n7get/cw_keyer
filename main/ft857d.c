@@ -2,9 +2,9 @@
 #include <string.h>
 #include "driver/uart.h"
 #include "esp_log.h"
-#include "cat.h"
+#include "radio.h"
 #include "bcd.h"
-#include "uart.h"
+#include "cat.h"
 
 #define CAT_COMMAND_SIZE 5           // CAT commands and responses are always 5 bytes
 
@@ -49,7 +49,7 @@
 
 // Initialize the FT-857D radio
 static esp_err_t ft857d_init_radio() {
-    if (uart_init() != ESP_OK) {
+    if (cat_init(4800) != ESP_OK) {
         ESP_LOGE(TAG, "Failed to initialize UART for FT-857D");
         return ESP_FAIL;
     }
@@ -62,11 +62,11 @@ static esp_err_t get_frequency_and_mode(uint8_t *response) {
     uint8_t command[CAT_COMMAND_SIZE] = {0, 0, 0, 0, CMD_READ_FREQ};
 
     ESP_LOGI(TAG, "Sending get frequency and mode command: %02X %02X %02X %02X %02X", command[0], command[1], command[2], command[3], command[4]);
-    if (uart_send_command(command, CAT_COMMAND_SIZE) != ESP_OK) {
+    if (cat_send(command, CAT_COMMAND_SIZE) != ESP_OK) {
         return ESP_FAIL;
     }
 
-    if (uart_read_response(response, CAT_COMMAND_SIZE) != ESP_OK) {
+    if (cat_recv(response, CAT_COMMAND_SIZE) != ESP_OK) {
         ESP_LOGE(TAG, "Invalid get frequency and mode response");
         return ESP_FAIL;
     }
@@ -110,13 +110,13 @@ static esp_err_t ft857d_set_frequency(uint32_t frequency) {
     uint32_to_bcd(frequency / 10, command, CAT_COMMAND_SIZE - 1);
 
     ESP_LOGI(TAG, "Sending set frequency command: %02X %02X %02X %02X %02X", command[0], command[1], command[2], command[3], command[4]);
-    if (uart_send_command(command, CAT_COMMAND_SIZE) != ESP_OK) {
+    if (cat_send(command, CAT_COMMAND_SIZE) != ESP_OK) {
         ESP_LOGE(TAG, "Failed to set frequency");
         return ESP_FAIL;
     }
 
     uint8_t response = 0;
-    if (uart_read_response(&response, 1) != ESP_OK) {
+    if (cat_recv(&response, 1) != ESP_OK) {
         ESP_LOGE(TAG, "Failed to read response");
         return ESP_FAIL;
     }
@@ -133,13 +133,13 @@ static esp_err_t ft857d_set_mode(uint8_t mode) {
     uint8_t command[CAT_COMMAND_SIZE] = {mode, 0, 0, 0, CMD_SET_MODE};
 
     ESP_LOGI(TAG, "Sending set mode command: %02X %02X %02X %02X %02X", command[0], command[1], command[2], command[3], command[4]);
-    if (uart_send_command(command, CAT_COMMAND_SIZE) != ESP_OK) {
+    if (cat_send(command, CAT_COMMAND_SIZE) != ESP_OK) {
         ESP_LOGE(TAG, "Failed to set mode");
         return ESP_FAIL;
     }
 
     uint8_t response = 0;
-    if (uart_read_response(&response, 1) != ESP_OK) {
+    if (cat_recv(&response, 1) != ESP_OK) {
         ESP_LOGE(TAG, "Failed to read response");
         return ESP_FAIL;
     }
@@ -156,13 +156,13 @@ static esp_err_t ft857d_set_ptt(bool enable) {
     uint8_t command[CAT_COMMAND_SIZE] = {0, 0, 0, 0, enable ? CMD_PTT_ON : CMD_PTT_OFF};
 
     ESP_LOGI(TAG, "Sending set ptt command: %02X %02X %02X %02X %02X", command[0], command[1], command[2], command[3], command[4]);
-    if (uart_send_command(command, CAT_COMMAND_SIZE) != ESP_OK) {
+    if (cat_send(command, CAT_COMMAND_SIZE) != ESP_OK) {
         ESP_LOGE(TAG, "Failed to set PTT");
         return ESP_FAIL;
     }
 
     uint8_t response = 0;
-    if (uart_read_response(&response, 1) != ESP_OK) {
+    if (cat_recv(&response, 1) != ESP_OK) {
         ESP_LOGE(TAG, "Failed to read response");
         return ESP_FAIL;
     }

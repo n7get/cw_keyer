@@ -8,7 +8,7 @@
 #include "network.h"
 #include "settings.h"
 #include "status.h"
-#include "cat.h"
+#include "radio.h"
 
 #define TAG "MAIN"
 
