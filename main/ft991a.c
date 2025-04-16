@@ -61,7 +61,7 @@ static esp_err_t ft991a_get_frequency(uint32_t *frequency) {
         return ESP_FAIL;
     }
 
-    ESP_LOGI(TAG, "Frequency: %u Hz", *frequency);
+    ESP_LOGI(TAG, "Frequency: %lu Hz", *frequency);
     return ESP_OK;
 }
 

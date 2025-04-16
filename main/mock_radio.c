@@ -22,13 +22,13 @@ static esp_err_t mock_init_radio(void) {
 
 static esp_err_t mock_get_frequency(uint32_t *frequency) {
     *frequency = mock_frequency;
-    ESP_LOGI(TAG, "Mock frequency: %u Hz", *frequency);
+    ESP_LOGI(TAG, "Mock frequency: %lu Hz", *frequency);
     return ESP_OK;
 }
 
 static esp_err_t mock_set_frequency(uint32_t frequency) {
     mock_frequency = frequency;
-    ESP_LOGI(TAG, "Mock frequency set to: %u Hz", mock_frequency);
+    ESP_LOGI(TAG, "Mock frequency set to: %lu Hz", mock_frequency);
     return ESP_OK;
 }
 
@@ -39,7 +39,7 @@ static esp_err_t mock_get_mode(uint8_t *mode) {
 }
 
 static esp_err_t mock_set_mode(uint8_t mode) {
-    mock_mode = mode_to_string(mode);
+    mock_mode = (char *)mode_to_string(mode);
     ESP_LOGI(TAG, "Mock mode set to: %s", mock_mode);
     return ESP_OK;
 }

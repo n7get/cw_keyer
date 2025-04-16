@@ -32,7 +32,7 @@ static const ham_band_t ham_bands[] = {
 
 // Function to check if a frequency is near the bottom of a ham band
 static bool is_inband(uint32_t frequency) {
-    ESP_LOGI(TAG, "Checking if frequency %u Hz is in band...", frequency);
+    ESP_LOGI(TAG, "Checking if frequency %lu Hz is in band...", frequency);
     for (size_t i = 0; i < sizeof(ham_bands) / sizeof(ham_band_t); i++) {
         if (frequency > ham_bands[i].lower && frequency < ham_bands[i].upper) {
             return true;
@@ -58,7 +58,7 @@ void tune_start(tune_data_t *tune_data) {
         ESP_LOGE(TAG, "Failed to get current power");
         return;
     }
-    ESP_LOGI(TAG, "Saved frequency: %u Hz, mode: %s, power: %u", tune_data->frequency, mode_to_string(tune_data->mode), tune_data->power);
+    ESP_LOGI(TAG, "Saved frequency: %lu Hz, mode: %s, power: %u", tune_data->frequency, mode_to_string(tune_data->mode), tune_data->power);
 
     // Set mode for tuning
     uint8_t tune_mode = string_to_mode(TUNE_MODE);
@@ -97,7 +97,7 @@ void tune_start(tune_data_t *tune_data) {
         ESP_LOGE(TAG, "Failed to set tuning frequency");
         return;
     }
-    ESP_LOGI(TAG, "Tuning frequency set to: %u Hz", new_frequency);
+    ESP_LOGI(TAG, "Tuning frequency set to: %lu Hz", new_frequency);
 
     key_down();
     ESP_LOGI(TAG, "Key down for tuning...");
@@ -129,5 +129,5 @@ void tune_stop(tune_data_t *tune_data) {
         ESP_LOGE(TAG, "Failed to restore frequency");
         return;
     }
-    ESP_LOGI(TAG, "Restored frequency: %u Hz", tune_data->frequency);
+    ESP_LOGI(TAG, "Restored frequency: %lu Hz", tune_data->frequency);
 }

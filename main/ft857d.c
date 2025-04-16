@@ -86,7 +86,7 @@ static esp_err_t ft857d_get_frequency(uint32_t *frequency) {
 
     *frequency = bcd_to_uint32(&response[0], CAT_COMMAND_SIZE - 1) * 10;
 
-    ESP_LOGI(TAG, "Frequency: %u Hz", *frequency);
+    ESP_LOGI(TAG, "Frequency: %lu Hz", *frequency);
     return ESP_OK;
 }
 

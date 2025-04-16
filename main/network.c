@@ -16,7 +16,7 @@ void wifi_init_ap(void);
 #include "esp_wifi.h"
 
 static void wifi_event_handler(void *arg, esp_event_base_t event_base, int32_t event_id, void *event_data) {
-    ESP_LOGI(TAG, "Event: %s, ID: %d", event_base, event_id);
+    ESP_LOGI(TAG, "Event: %s, ID: %ld", event_base, event_id);
     if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_START) {
         ESP_LOGI(TAG, "Wi-Fi Station started");
 

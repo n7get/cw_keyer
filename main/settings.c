@@ -73,7 +73,7 @@ void load_settings(void) {
 
     uint32_t u32_v;
     if (get_u32("baud_rate", &u32_v) == ESP_OK) {
-        ESP_LOGI(TAG, "Loaded baud rate from NVS: %d", u32_v);
+        ESP_LOGI(TAG, "Loaded baud rate from NVS: %ld", u32_v);
         baud_rate = (int)u32_v;
     } else {
         ESP_LOGW(TAG, "Failed to load baud rate from NVS, using default: %d", baud_rate);
