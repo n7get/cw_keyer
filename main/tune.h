@@ -2,7 +2,6 @@
 #define TUNE_H
 
 #include <stdint.h>
-#include "esp_err.h"
 
 typedef struct {
     uint32_t frequency; // Frequency in Hz
