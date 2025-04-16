@@ -113,7 +113,7 @@ void send_morse_code() {
     char message[MESSAGE_MAX_SIZE];
 
     // Retrieve the current message from NVS
-    esp_err_t err = get_message(message, sizeof(message));
+    esp_err_t err = get_current_message(message, sizeof(message));
     if (err != ESP_OK) {
         ESP_LOGE("SEND_MORSE", "Failed to get message: %s", esp_err_to_name(err));
         return;
