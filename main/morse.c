@@ -25,7 +25,7 @@ void space(int duration) {
     vTaskDelay(duration / portTICK_PERIOD_MS);
 }
 
-void morse_code_task(void *arg) {
+static void morse_code_task(void *arg) {
     morse_task_t task_data;
 
     while (1) {

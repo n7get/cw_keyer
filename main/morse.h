@@ -2,7 +2,7 @@
 #define MORSE_CODE_H
 
 #include "esp_err.h"
-#include "esp_http_server.h"
+#include "stdbool.h"
 
 void morse_code_init(void);
 void register_morse_endpoints(void);
