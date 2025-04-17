@@ -1,5 +1,5 @@
-#ifndef UART_H
-#define UART_H
+#ifndef CAT_H
+#define CAT_H
 
 #include "esp_err.h"
 #include <stddef.h>
@@ -16,4 +16,4 @@ esp_err_t cat_send(const uint8_t *command, size_t command_size);
 esp_err_t cat_recv(uint8_t *response, size_t response_size);
 esp_err_t cat_recv_until(uint8_t *response, size_t response_size, char terminator);
 
-#endif // UART_H
+#endif // CAT_H

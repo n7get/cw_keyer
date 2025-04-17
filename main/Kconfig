@@ -1,0 +1,24 @@
+menu "Radio Configuration"
+
+config RADIO_TYPE
+    string "Select Radio Type"
+    default "mock_radio"
+    help
+        Choose the type of radio to use in the application.
+
+choice
+    prompt "Radio Type"
+    default RADIO_MOCK
+
+config RADIO_MOCK
+    bool "Mock Radio"
+
+config RADIO_FT857D
+    bool "FT-857D Radio"
+
+config RADIO_FT991A
+    bool "FT-991A Radio"
+
+endchoice
+
+endmenu

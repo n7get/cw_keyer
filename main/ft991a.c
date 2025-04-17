@@ -5,7 +5,9 @@
 #include "radio.h"
 #include <stdio.h>
 #include <string.h>
+#include "sdkconfig.h"
 
+#ifdef CONFIG_RADIO_FT991A
 #define TAG "FT991A"
 
 // CAT command definitions for FT-991A
@@ -31,18 +33,18 @@
 #define MODE_PKT       10 // Packet
 
 // Initialize the UART driver
-static esp_err_t ft991a_init_radio() {
+esp_err_t init_radio() {
     if (cat_init() != ESP_OK) {
         ESP_LOGE(TAG, "Failed to initialize UART for FT-857D");
         return ESP_FAIL;
     }
 
-    ESP_LOGI(TAG, "UART initialized for FT-991A");
+    ESP_LOGI(TAG, "FT-991A initialized");
     return ESP_OK;
 }
 
 // Get frequency from the FT-991A
-static esp_err_t ft991a_get_frequency(uint32_t *frequency) {
+esp_err_t get_frequency(uint32_t *frequency) {
     char response[BUF_SIZE] = {0};
 
     if (cat_send((uint8_t *)CMD_GET_FREQ, strlen(CMD_GET_FREQ)) != ESP_OK) {
@@ -66,7 +68,7 @@ static esp_err_t ft991a_get_frequency(uint32_t *frequency) {
 }
 
 // Set frequency on the FT-991A
-static esp_err_t ft991a_set_frequency(uint32_t frequency) {
+esp_err_t set_frequency(uint32_t frequency) {
     char command[BUF_SIZE] = {0};
 
     size_t len = snprintf(command, sizeof(command), CMD_SET_FREQ, frequency);
@@ -81,7 +83,7 @@ static esp_err_t ft991a_set_frequency(uint32_t frequency) {
 }
 
 // Get mode from the FT-991A
-static esp_err_t ft991a_get_mode(uint8_t *mode) {
+esp_err_t get_mode(uint8_t *mode) {
     char response[BUF_SIZE] = {0};
 
     if (cat_send((uint8_t *)CMD_GET_MODE, strlen(CMD_GET_MODE)) != ESP_OK) {
@@ -109,7 +111,7 @@ static esp_err_t ft991a_get_mode(uint8_t *mode) {
 }
 
 // Set mode on the FT-991A
-static esp_err_t ft991a_set_mode(uint8_t mode) {
+esp_err_t set_mode(uint8_t mode) {
     char command[BUF_SIZE] = {0};
 
     size_t len = snprintf(command, sizeof(command), CMD_SET_MODE, mode);
@@ -124,7 +126,7 @@ static esp_err_t ft991a_set_mode(uint8_t mode) {
 }
 
 // Get power level from the FT-991A
-static esp_err_t ft991a_get_power(uint8_t *power) {
+esp_err_t get_power(uint8_t *power) {
     char response[BUF_SIZE] = {0};
 
     if (cat_send((uint8_t *)CMD_GET_POWER, strlen(CMD_GET_POWER)) != ESP_OK) {
@@ -150,7 +152,7 @@ static esp_err_t ft991a_get_power(uint8_t *power) {
 }
 
 // Set power level on the FT-991A
-static esp_err_t ft991a_set_power(uint8_t power) {
+esp_err_t set_power(uint8_t power) {
     if (power > 100) {
         ESP_LOGE(TAG, "Invalid power level: %u (must be between 0 and 100)", power);
         return ESP_ERR_INVALID_ARG;
@@ -170,7 +172,7 @@ static esp_err_t ft991a_set_power(uint8_t power) {
 }
 
 // Set PTT (Push-to-Talk) on the FT-991A
-static esp_err_t ft991a_set_ptt(bool enable) {
+esp_err_t set_ptt(bool enable) {
     const char *command = enable ? CMD_PTT_ON : CMD_PTT_OFF;
 
     if (cat_send((uint8_t *)command, strlen(command)) != ESP_OK) {
@@ -183,7 +185,7 @@ static esp_err_t ft991a_set_ptt(bool enable) {
 }
 
 // Convert mode string to numeric mode value
-static uint8_t ft991a_string_to_mode(const char *mode_str) {
+uint8_t string_to_mode(const char *mode_str) {
     if (strcmp(mode_str, "LSB") == 0) return MODE_LSB;
     if (strcmp(mode_str, "USB") == 0) return MODE_USB;
     if (strcmp(mode_str, "CW") == 0) return MODE_CW;
@@ -196,7 +198,7 @@ static uint8_t ft991a_string_to_mode(const char *mode_str) {
 }
 
 // Convert numeric mode value to mode string
-static const char *ft991a_mode_to_string(uint8_t mode) {
+const char *mode_to_string(uint8_t mode) {
     switch (mode) {
         case MODE_LSB: return "LSB";
         case MODE_USB: return "USB";
@@ -209,17 +211,5 @@ static const char *ft991a_mode_to_string(uint8_t mode) {
         default: return "UNKNOWN";
     }
 }
+#endif // CONFIG_RADIO_FT991A
 
-// FT-991A radio operations
-const radio_operations_t ft991a_ops = {
-    .init_radio = ft991a_init_radio,
-    .get_frequency = ft991a_get_frequency,
-    .set_frequency = ft991a_set_frequency,
-    .get_mode = ft991a_get_mode,
-    .set_mode = ft991a_set_mode,
-    .get_power = ft991a_get_power,
-    .set_power = ft991a_set_power,
-    .set_ptt = ft991a_set_ptt,
-    .string_to_mode = ft991a_string_to_mode,
-    .mode_to_string = ft991a_mode_to_string,
-};

@@ -15,8 +15,14 @@ char ap_ssid[32] = "cw_keyer";
 char ap_password[64] = "";
 char sta_ssid[32] = "";
 char sta_password[64] = "";
-char radio_model[16] = "MOCK"; // Default radio model
-int baud_rate = 38400; // Default baud rate
+
+#ifdef CONFIG_RADIO_FT857D
+#define DEFAULT_BAUD_RATE 4800
+#endif
+#ifndef DEFAULT_BAUD_RATE
+#define DEFAULT_BAUD_RATE 38400
+#endif
+int baud_rate = DEFAULT_BAUD_RATE;
 
 void load_settings(void) {
     ESP_ERROR_CHECK(nvs_flash_init());
@@ -61,14 +67,6 @@ void load_settings(void) {
         ESP_LOGW(TAG, "Failed to load STA Password from NVS, using default: %s", sta_password);
         set_string("sta_password", sta_password);
         ESP_LOGI(TAG, "Default STA Password saved to NVS: %s", sta_password);
-    }
-
-    if (get_string("radio_model", radio_model, sizeof(radio_model)) == ESP_OK) {
-        ESP_LOGI(TAG, "Loaded radio model from NVS: %s", radio_model);
-    } else {
-        ESP_LOGW(TAG, "Failed to load radio model from NVS, using default: %s", radio_model);
-        set_string("radio_model", radio_model);
-        ESP_LOGI(TAG, "Default radio model saved to NVS: %s", radio_model);
     }
 
     uint32_t u32_v;
@@ -169,18 +167,6 @@ static esp_err_t set_settings_handler(httpd_req_t *req) {
         ESP_LOGE(TAG, "STA Password parameter missing or invalid");
     }
 
-    cJSON *radio_model_json = cJSON_GetObjectItem(json, "radio_model");
-    if (radio_model_json && cJSON_IsString(radio_model_json)) {
-        if (strcmp(radio_model, radio_model_json->valuestring) != 0) {
-            strncpy(radio_model, radio_model_json->valuestring, sizeof(radio_model) - 1);
-            radio_model[sizeof(radio_model) - 1] = '\0';
-            set_string("radio_model", radio_model);
-            ESP_LOGI(TAG, "Radio model updated and saved to NVS: %s", radio_model);
-        }
-    } else {
-        ESP_LOGE(TAG, "Radio model parameter missing or invalid");
-    }
-
     cJSON *baud_rate_json = cJSON_GetObjectItem(json, "baud_rate");
     if (baud_rate_json && cJSON_IsNumber(baud_rate_json)) {
         int new_baud_rate = baud_rate_json->valueint;
@@ -217,7 +203,6 @@ static esp_err_t get_settings_handler(httpd_req_t *req) {
     cJSON_AddStringToObject(json, "ap_password", ap_password);
     cJSON_AddStringToObject(json, "sta_ssid", sta_ssid);
     cJSON_AddStringToObject(json, "sta_password", sta_password);
-    cJSON_AddStringToObject(json, "radio_model", radio_model);
     cJSON_AddNumberToObject(json, "baud_rate", baud_rate);
 
     const char *response = cJSON_Print(json);

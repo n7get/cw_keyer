@@ -67,8 +67,9 @@ void app_main(void) {
 
     morse_code_init();
 
+    init_radio();
+
     queue_morse_code("READY", false);
 
     ESP_LOGI("MAIN", "Application started");
-    init_radio(radio_model);
 }
