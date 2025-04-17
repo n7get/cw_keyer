@@ -92,12 +92,6 @@
         <label for="sta_password">STA Password:</label>
         <input type="password" id="sta_password" name="sta_password" placeholder="Enter STA Password">
 
-        <label for="radio_model">Radio Model:</label>
-        <select id="radio_model" name="radio_model">
-            <option value="MOCK">Mock Radio</option>
-            <option value="FT-857D">FT-857D</option>
-        </select>
-
         <label for="baud_rate">Baud Rate:</label>
         <select id="baud_rate" name="baud_rate">
             <option value="4800">4800</option>
@@ -133,7 +127,6 @@
                 document.getElementById('ap_password').value = data.ap_password;
                 document.getElementById('sta_ssid').value = data.sta_ssid;
                 document.getElementById('sta_password').value = data.sta_password;
-                document.getElementById('radio_model').value = data.radio_model;
                 document.getElementById('baud_rate').value = data.baud_rate;
                 document.getElementById('statusText').innerText = 'Settings loaded successfully';
             } catch (error) {
@@ -150,7 +143,6 @@
                 ap_password: document.getElementById('ap_password').value,
                 sta_ssid: document.getElementById('sta_ssid').value,
                 sta_password: document.getElementById('sta_password').value,
-                radio_model: document.getElementById('radio_model').value,
                 baud_rate: parseInt(document.getElementById('baud_rate').value, 10),
             };
 

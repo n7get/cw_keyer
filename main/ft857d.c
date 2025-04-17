@@ -5,7 +5,9 @@
 #include "radio.h"
 #include <stdio.h>
 #include <string.h>
+#include "sdkconfig.h"
 
+#ifdef CONFIG_RADIO_FT857D
 #define CAT_COMMAND_SIZE 5           // CAT commands and responses are always 5 bytes
 
 // Mode definitions for FT-857D
@@ -48,7 +50,7 @@
 #define TAG "FT857D"
 
 // Initialize the FT-857D radio
-static esp_err_t ft857d_init_radio() {
+esp_err_t init_radio() {
     if (cat_init() != ESP_OK) {
         ESP_LOGE(TAG, "Failed to initialize UART for FT-857D");
         return ESP_FAIL;
@@ -58,7 +60,7 @@ static esp_err_t ft857d_init_radio() {
     return ESP_OK;
 }
 
-static esp_err_t get_frequency_and_mode(uint8_t *response) {
+esp_err_t get_frequency_and_mode(uint8_t *response) {
     uint8_t command[CAT_COMMAND_SIZE] = {0, 0, 0, 0, CMD_READ_FREQ};
 
     ESP_LOGI(TAG, "Sending get frequency and mode command: %02X %02X %02X %02X %02X", command[0], command[1], command[2], command[3], command[4]);
@@ -76,7 +78,7 @@ static esp_err_t get_frequency_and_mode(uint8_t *response) {
 }
 
 // Get frequency from the FT-857D
-static esp_err_t ft857d_get_frequency(uint32_t *frequency) {
+esp_err_t get_frequency(uint32_t *frequency) {
     uint8_t response[CAT_COMMAND_SIZE] = {0};
 
     if (get_frequency_and_mode(response) != ESP_OK) {
@@ -91,7 +93,7 @@ static esp_err_t ft857d_get_frequency(uint32_t *frequency) {
 }
 
 // Get mode from the FT-857D
-static esp_err_t ft857d_get_mode(uint8_t *mode) {
+esp_err_t get_mode(uint8_t *mode) {
     uint8_t response[CAT_COMMAND_SIZE] = {0, 0, 0, 0, 0};
 
     if (get_frequency_and_mode(response) != ESP_OK) {
@@ -104,7 +106,7 @@ static esp_err_t ft857d_get_mode(uint8_t *mode) {
 }
 
 // Set frequency on the FT-857D
-static esp_err_t ft857d_set_frequency(uint32_t frequency) {
+esp_err_t set_frequency(uint32_t frequency) {
     uint8_t command[CAT_COMMAND_SIZE] = {0, 0, 0, 0, CMD_SET_FREQ};
 
     uint32_to_bcd(frequency / 10, command, CAT_COMMAND_SIZE - 1);
@@ -129,7 +131,7 @@ static esp_err_t ft857d_set_frequency(uint32_t frequency) {
 }
 
 // Set mode on the FT-857D
-static esp_err_t ft857d_set_mode(uint8_t mode) {
+esp_err_t set_mode(uint8_t mode) {
     uint8_t command[CAT_COMMAND_SIZE] = {mode, 0, 0, 0, CMD_SET_MODE};
 
     ESP_LOGI(TAG, "Sending set mode command: %02X %02X %02X %02X %02X", command[0], command[1], command[2], command[3], command[4]);
@@ -152,7 +154,7 @@ static esp_err_t ft857d_set_mode(uint8_t mode) {
 }
 
 // Set PTT (Push-to-Talk) on the FT-857D
-static esp_err_t ft857d_set_ptt(bool enable) {
+esp_err_t set_ptt(bool enable) {
     uint8_t command[CAT_COMMAND_SIZE] = {0, 0, 0, 0, enable ? CMD_PTT_ON : CMD_PTT_OFF};
 
     ESP_LOGI(TAG, "Sending set ptt command: %02X %02X %02X %02X %02X", command[0], command[1], command[2], command[3], command[4]);
@@ -175,19 +177,19 @@ static esp_err_t ft857d_set_ptt(bool enable) {
 }
 
 // Get power level from the FT-857D
-static esp_err_t ft857d_get_power(uint8_t *power) {
+esp_err_t get_power(uint8_t *power) {
     *power = 0;
     ESP_LOGI(TAG, "Get power level is not supported for FT-857D");
     return ESP_OK;
 }
 
 // Set power level on the FT-857D
-static esp_err_t ft857d_set_power(uint8_t power) {
+esp_err_t set_power(uint8_t power) {
     ESP_LOGI(TAG, "Set power level is not supported for FT-857D");
     return ESP_OK;
 }
 
-static uint8_t ft857d_string_to_mode(const char* mode) {
+uint8_t string_to_mode(const char* mode) {
     if (strcmp(mode, "LSB") == 0) return MODE_LSB;
     if (strcmp(mode, "USB") == 0) return MODE_USB;
     if (strcmp(mode, "CW") == 0) return MODE_CW;
@@ -203,7 +205,7 @@ static uint8_t ft857d_string_to_mode(const char* mode) {
     return 0xFF; // Unknown mode
 }
 
-const char* ft857d_mode_to_string(uint8_t mode) {
+const char* mode_to_string(uint8_t mode) {
     switch (mode) {
         case MODE_LSB:   return "LSB";   // Lower Sideband
         case MODE_USB:   return "USB";   // Upper Sideband
@@ -219,17 +221,5 @@ const char* ft857d_mode_to_string(uint8_t mode) {
         default:         return "UNKNOWN"; // Unknown mode
     }
 }
+#endif // CONFIG_RADIO_FT857D
 
-// FT-857D radio operations
-const radio_operations_t ft857d_ops = {
-    .init_radio = ft857d_init_radio,
-    .get_frequency = ft857d_get_frequency,
-    .set_frequency = ft857d_set_frequency,
-    .get_mode = ft857d_get_mode,
-    .set_mode = ft857d_set_mode,
-    .get_power = ft857d_get_power,
-    .set_power = ft857d_set_power,
-    .set_ptt = ft857d_set_ptt,
-    .string_to_mode = ft857d_string_to_mode,
-    .mode_to_string = ft857d_mode_to_string,
-};
