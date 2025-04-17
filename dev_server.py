@@ -1,14 +1,14 @@
 import os
 from http.server import SimpleHTTPRequestHandler, HTTPServer
 import requests
+import argparse
 
-ESP32_URL = "http://192.168.68.69"  # Replace with the actual ESP32 address
-SPIFFS_DIR = "spiffs_image"  # Directory to serve files from
+HTML = "html"  # Directory to serve files from
 
 class DebugHTTPRequestHandler(SimpleHTTPRequestHandler):
     def translate_path(self, path):
-        # Serve files from the spiffs_image directory
-        return os.path.join(SPIFFS_DIR, path.lstrip("/"))
+        # Serve files from the html directory
+        return os.path.join(HTML, path.lstrip("/"))
 
     def do_GET(self):
         if os.path.exists(self.translate_path(self.path)):
@@ -33,7 +33,7 @@ class DebugHTTPRequestHandler(SimpleHTTPRequestHandler):
 
     def redirect_to_esp32(self):
         try:
-            url = f"{ESP32_URL}{self.path}"
+            url = f"{URL}{self.path}"
             headers = self.filter_headers()  # Use filtered headers
 
             if self.command == "GET":
@@ -56,8 +56,14 @@ class DebugHTTPRequestHandler(SimpleHTTPRequestHandler):
             self.send_error(500, f"Error redirecting to ESP32: {e}")
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Start the development server.")
+    parser.add_argument("ip", type=str, help="IP address of the ESP32")
+    args = parser.parse_args()
+
+    URL = f"http://{args.ip}"
+
     PORT = 8080
     server_address = ("", PORT)
     httpd = HTTPServer(server_address, DebugHTTPRequestHandler)
-    print(f"Serving files from {SPIFFS_DIR} on port {PORT}...")
+    print(f"Serving files from {HTML} on port {PORT}...")
     httpd.serve_forever()

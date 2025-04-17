@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <esp_vfs.h>
-#include "esp_spiffs.h"
+#include "esp_littlefs.h"
 
 static const char *TAG = "HTTP";
 static httpd_handle_t server = NULL;
@@ -39,7 +39,7 @@ static esp_err_t redirect_handler(httpd_req_t *req) {
 static esp_err_t file_handler(httpd_req_t *req) {
     ESP_LOGI(TAG, "Received file request: %s", req->uri);
 
-    char filepath[ESP_VFS_PATH_MAX + 128] = "/spiffs";
+    char filepath[ESP_VFS_PATH_MAX + 128] = HTML_MOUNT_POINT;
     strncat(filepath, req->uri, sizeof(filepath) - strlen(filepath) - 1);
     ESP_LOGI(TAG, "File path: %s", filepath);
 
@@ -75,14 +75,14 @@ bool start_webserver(void) {
 
         register_html_page("/", HTTP_GET, redirect_handler);
 
-        ESP_LOGI(TAG, "Reading SPIFFS contents...");
+        ESP_LOGI(TAG, "Reading HTML contents...");
 
-        DIR *dir = opendir("/spiffs");
+        DIR *dir = opendir(HTML_MOUNT_POINT);
         if (!dir) {
-            ESP_LOGE(TAG, "Failed to open SPIFFS directory");
+            ESP_LOGE(TAG, "Failed to open HTML directory");
             return false;
         }
-    
+
         struct dirent *entry;
         while ((entry = readdir(dir)) != NULL) {
             char filepath[ESP_VFS_PATH_MAX + 128] = "/";
@@ -90,9 +90,9 @@ bool start_webserver(void) {
 
             register_html_page(filepath, HTTP_GET, file_handler);
         }
-    
+
         closedir(dir);
-        ESP_LOGI(TAG, "Finished listing SPIFFS contents");
+        ESP_LOGI(TAG, "Finished listing HTML contents");
 
         return true;
     } else {

@@ -6,5 +6,5 @@ idf_component_register(
 	PRIV_REQUIRES "esp_wifi"
 	PRIV_REQUIRES "json"
 	PRIV_REQUIRES "nvs_flash"
-	PRIV_REQUIRES "spiffs"
 	INCLUDE_DIRS ".")
+littlefs_create_partition_image(html ../html FLASH_IN_PROJECT)
