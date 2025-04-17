@@ -155,6 +155,12 @@ esp_err_t cat_recv_until(uint8_t *response, size_t response_size, char terminato
             return ESP_FAIL;
         }
         if (response[i] == terminator) {
+            if (i > response_size) {
+                ESP_LOGE(TAG, "Response size exceeds buffer size");
+                return ESP_FAIL;
+            }
+
+            response[i + 1] = '\0';
             return ESP_OK;
         }
         i++;

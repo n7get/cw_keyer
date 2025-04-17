@@ -32,6 +32,10 @@
 #define MODE_DIG       9  // Digital
 #define MODE_PKT       10 // Packet
 
+#define RESP_BUF_SIZE 64
+static char command[RESP_BUF_SIZE];
+static char response[RESP_BUF_SIZE];
+
 // Initialize the UART driver
 esp_err_t init_radio() {
     if (cat_init() != ESP_OK) {
@@ -45,8 +49,6 @@ esp_err_t init_radio() {
 
 // Get frequency from the FT-991A
 esp_err_t get_frequency(uint32_t *frequency) {
-    char response[BUF_SIZE] = {0};
-
     if (cat_send((uint8_t *)CMD_GET_FREQ, strlen(CMD_GET_FREQ)) != ESP_OK) {
         ESP_LOGE(TAG, "Failed to send get frequency command");
         return ESP_FAIL;
@@ -69,7 +71,7 @@ esp_err_t get_frequency(uint32_t *frequency) {
 
 // Set frequency on the FT-991A
 esp_err_t set_frequency(uint32_t frequency) {
-    char command[BUF_SIZE] = {0};
+    char command[RESP_BUF_SIZE] = {0};
 
     size_t len = snprintf(command, sizeof(command), CMD_SET_FREQ, frequency);
 
@@ -84,8 +86,6 @@ esp_err_t set_frequency(uint32_t frequency) {
 
 // Get mode from the FT-991A
 esp_err_t get_mode(uint8_t *mode) {
-    char response[BUF_SIZE] = {0};
-
     if (cat_send((uint8_t *)CMD_GET_MODE, strlen(CMD_GET_MODE)) != ESP_OK) {
         ESP_LOGE(TAG, "Failed to send get mode command");
         return ESP_FAIL;
@@ -93,10 +93,6 @@ esp_err_t get_mode(uint8_t *mode) {
 
     if (cat_recv_until((uint8_t *)response, sizeof(response), ';') != ESP_OK) {
         ESP_LOGE(TAG, "Failed to read get mode response");
-        return ESP_FAIL;
-    }
-
-    if (cat_recv_until((uint8_t *)response, sizeof(response), ';') != ESP_OK) {
         return ESP_FAIL;
     }
 
@@ -112,7 +108,7 @@ esp_err_t get_mode(uint8_t *mode) {
 
 // Set mode on the FT-991A
 esp_err_t set_mode(uint8_t mode) {
-    char command[BUF_SIZE] = {0};
+    char command[RESP_BUF_SIZE] = {0};
 
     size_t len = snprintf(command, sizeof(command), CMD_SET_MODE, mode);
 
@@ -127,8 +123,6 @@ esp_err_t set_mode(uint8_t mode) {
 
 // Get power level from the FT-991A
 esp_err_t get_power(uint8_t *power) {
-    char response[BUF_SIZE] = {0};
-
     if (cat_send((uint8_t *)CMD_GET_POWER, strlen(CMD_GET_POWER)) != ESP_OK) {
         ESP_LOGE(TAG, "Failed to send get power command");
         return ESP_FAIL;
@@ -158,7 +152,6 @@ esp_err_t set_power(uint8_t power) {
         return ESP_ERR_INVALID_ARG;
     }
 
-    char command[BUF_SIZE] = {0};
     size_t len = snprintf(command, sizeof(command), CMD_SET_POWER, power);
 
     if (cat_send((uint8_t *)command, len) != ESP_OK) {
@@ -173,7 +166,7 @@ esp_err_t set_power(uint8_t power) {
 
 // Set PTT (Push-to-Talk) on the FT-991A
 esp_err_t set_ptt(bool enable) {
-    const char *command = enable ? CMD_PTT_ON : CMD_PTT_OFF;
+    strcpy(command, enable ? CMD_PTT_ON : CMD_PTT_OFF);
 
     if (cat_send((uint8_t *)command, strlen(command)) != ESP_OK) {
         ESP_LOGE(TAG, "Failed to send PTT command");
