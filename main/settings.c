@@ -15,6 +15,7 @@ char ap_ssid[32] = "cw_keyer";
 char ap_password[64] = "";
 char sta_ssid[32] = "";
 char sta_password[64] = "";
+int tune_power = 5;
 
 #ifdef CONFIG_RADIO_FT857D
 #define DEFAULT_BAUD_RATE 4800
@@ -76,6 +77,15 @@ void load_settings(void) {
     } else {
         ESP_LOGW(TAG, "Failed to load baud rate from NVS, using default: %d", baud_rate);
         set_u32("baud_rate", (uint32_t)baud_rate);
+    }
+
+    if (get_u8("tune_power", &u8_v) == ESP_OK) {
+        ESP_LOGI(TAG, "Loaded tune power from NVS: %d", u8_v);
+        tune_power = (int)u8_v;
+    } else {
+        ESP_LOGW(TAG, "Failed to load tune power from NVS, using default: %d", tune_power);
+        set_u8("tune_power", (uint8_t)tune_power);
+        ESP_LOGI(TAG, "Default tune power saved to NVS: %d", tune_power);
     }
 }
 
@@ -179,6 +189,22 @@ static esp_err_t set_settings_handler(httpd_req_t *req) {
         ESP_LOGE(TAG, "Baud rate parameter missing or invalid");
     }
 
+    cJSON *tune_power_json = cJSON_GetObjectItem(json, "tune_power");
+    if (tune_power_json && cJSON_IsNumber(tune_power_json)) {
+        int new_tune_power = tune_power_json->valueint;
+        if (new_tune_power < 5 || new_tune_power > 100) {
+            ESP_LOGE(TAG, "Tune power out of range (1-100), using default: %d", tune_power);
+            new_tune_power = tune_power;
+        }
+        if (new_tune_power != tune_power) {
+            tune_power = new_tune_power;
+            set_u8("tune_power", (uint8_t)tune_power);
+            ESP_LOGI(TAG, "Tune power updated and saved to NVS: %d", tune_power);
+        }
+    } else {
+        ESP_LOGE(TAG, "Tune power parameter missing or invalid");
+    }
+
     cJSON_Delete(json);
 
     const char *response = "{\"result\": \"Settings updated successfully\"}";
@@ -204,6 +230,7 @@ static esp_err_t get_settings_handler(httpd_req_t *req) {
     cJSON_AddStringToObject(json, "sta_ssid", sta_ssid);
     cJSON_AddStringToObject(json, "sta_password", sta_password);
     cJSON_AddNumberToObject(json, "baud_rate", baud_rate);
+    cJSON_AddNumberToObject(json, "tune_power", tune_power);
 
     const char *response = cJSON_Print(json);
     if (!response) {

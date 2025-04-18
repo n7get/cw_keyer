@@ -2,12 +2,12 @@
 #include "esp_log.h"
 #include "gpio.h"
 #include "radio.h"
+#include "settings.h" // Include settings header to access tune_power
 #include <stdio.h>
 #include <string.h>
 
 #define TAG "TUNE"
 #define TUNE_MODE "CW"
-#define TUNE_POWER 5 // Power level during tuning
 
 // Ham band frequency limits (in Hz)
 typedef struct {
@@ -68,11 +68,11 @@ void tune_start(tune_data_t *tune_data) {
     }
 
     // Set power for tuning
-    if (set_power(TUNE_POWER) != ESP_OK) {
+    if (set_power(tune_power) != ESP_OK) {
         ESP_LOGE(TAG, "Failed to set tune power");
         return;
     }
-    ESP_LOGI(TAG, "Power set to: %u", TUNE_POWER);
+    ESP_LOGI(TAG, "Power set to: %u", tune_power);
 
     // Adjust frequency for tuning
     const char *mode_str = mode_to_string(tune_data->mode);

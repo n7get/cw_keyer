@@ -100,6 +100,9 @@
             <option value="38400">38400</option>
         </select>
 
+        <label for="tune_power">Tune Power:</label>
+        <input type="number" id="tune_power" name="tune_power" placeholder="Enter Tune Power" min="1" max="100">
+
         <button type="button" onclick="updateSettings()">Update Settings</button>
     </form>
 
@@ -128,6 +131,7 @@
                 document.getElementById('sta_ssid').value = data.sta_ssid;
                 document.getElementById('sta_password').value = data.sta_password;
                 document.getElementById('baud_rate').value = data.baud_rate;
+                document.getElementById('tune_power').value = data.tune_power;
                 document.getElementById('statusText').innerText = 'Settings loaded successfully';
             } catch (error) {
                 console.error('Error fetching settings:', error);
@@ -144,6 +148,7 @@
                 sta_ssid: document.getElementById('sta_ssid').value,
                 sta_password: document.getElementById('sta_password').value,
                 baud_rate: parseInt(document.getElementById('baud_rate').value, 10),
+                tune_power: parseInt(document.getElementById('tune_power').value, 10),
             };
 
             try {
