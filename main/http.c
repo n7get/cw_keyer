@@ -32,7 +32,22 @@ static esp_err_t redirect_handler(httpd_req_t *req) {
     ESP_LOGI(TAG, "Received redirect request: %s", req->uri);
     httpd_resp_set_status(req, "307 Temporary Redirect");
     httpd_resp_set_hdr(req, "Location", "/index.html");
-    httpd_resp_send(req, NULL, 0);
+    // iOS requires content in the response to detect a captive portal, simply redirecting is not sufficient.
+    httpd_resp_send(req, "Redirect", HTTPD_RESP_USE_STRLEN);
+    return ESP_OK;
+}
+
+// HTTP Error (404) Handler - Redirects all requests to the root page
+esp_err_t http_404_error_handler(httpd_req_t *req, httpd_err_code_t err)
+{
+    // Set status
+    httpd_resp_set_status(req, "302 Temporary Redirect");
+    // Redirect to the "/" root directory
+    httpd_resp_set_hdr(req, "Location", "/");
+    // iOS requires content in the response to detect a captive portal, simply redirecting is not sufficient.
+    httpd_resp_send(req, "Redirect to the captive portal", HTTPD_RESP_USE_STRLEN);
+
+    ESP_LOGI(TAG, "Redirecting to root");
     return ESP_OK;
 }
 
@@ -74,6 +89,7 @@ bool start_webserver(void) {
         ESP_LOGI(TAG, "Web server started");
 
         register_html_page("/", HTTP_GET, redirect_handler);
+        httpd_register_err_handler(server, HTTPD_404_NOT_FOUND, http_404_error_handler);
 
         ESP_LOGI(TAG, "Reading HTML contents...");
 

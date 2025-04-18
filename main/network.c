@@ -5,18 +5,45 @@
 #include "esp_wifi.h"
 #include "settings.h"
 #include <string.h>
+#include <arpa/inet.h>
+#include "dns_server.h"
 
 #define MAX_STA_CONN 4
 #define MAX_RETRY 5
 
-static const char *TAG = "App_Wifi";
+static const char *TAG = "WIFI";
 static int retry_count = 0;
 
 void wifi_init_ap(void);
 #include "esp_wifi.h"
 
+static void dhcp_set_captiveportal_url(void) {
+    // get the IP of the access point to redirect to
+    esp_netif_ip_info_t ip_info;
+    esp_netif_get_ip_info(esp_netif_get_handle_from_ifkey("WIFI_AP_DEF"), &ip_info);
+
+    char ip_addr[16];
+    inet_ntoa_r(ip_info.ip.addr, ip_addr, 16);
+    ESP_LOGI(TAG, "Set up softAP with IP: %s", ip_addr);
+
+    // turn the IP into a URI
+    char* captiveportal_uri = (char*) malloc(32 * sizeof(char));
+    assert(captiveportal_uri && "Failed to allocate captiveportal_uri");
+    strcpy(captiveportal_uri, "http://");
+    strcat(captiveportal_uri, ip_addr);
+
+    // get a handle to configure DHCP with
+    esp_netif_t* netif = esp_netif_get_handle_from_ifkey("WIFI_AP_DEF");
+
+    // set the DHCP option 114
+    ESP_ERROR_CHECK_WITHOUT_ABORT(esp_netif_dhcps_stop(netif));
+    ESP_ERROR_CHECK(esp_netif_dhcps_option(netif, ESP_NETIF_OP_SET, ESP_NETIF_CAPTIVEPORTAL_URI, captiveportal_uri, strlen(captiveportal_uri)));
+    ESP_ERROR_CHECK_WITHOUT_ABORT(esp_netif_dhcps_start(netif));
+
+    ESP_LOGI(TAG, "Set captive portal URL: %s", captiveportal_uri);
+}
+
 static void wifi_event_handler(void *arg, esp_event_base_t event_base, int32_t event_id, void *event_data) {
-    ESP_LOGI(TAG, "Event: %s, ID: %ld", event_base, event_id);
     if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_START) {
         ESP_LOGI(TAG, "Wi-Fi Station started");
 
@@ -48,6 +75,10 @@ static void wifi_event_handler(void *arg, esp_event_base_t event_base, int32_t e
     } else if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_AP_STADISCONNECTED) {
         wifi_event_ap_stadisconnected_t *event = (wifi_event_ap_stadisconnected_t *)event_data;
         ESP_LOGI(TAG, "Station disconnected from AP: MAC=" MACSTR ", AID=%d", MAC2STR(event->mac), event->aid);
+    } else if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_HOME_CHANNEL_CHANGE) {
+        ESP_LOGI(TAG, "Home channel changed");
+    } else {
+        ESP_LOGI(TAG, "Unknown Event: %s, ID: %ld", event_base, event_id);
     }
 }
 
@@ -100,6 +131,12 @@ void wifi_init_ap(void) {
     ESP_ERROR_CHECK(esp_wifi_start());
 
     ESP_LOGI(TAG, "Wi-Fi Access Point initialized. SSID: %s, Password: %s", ap_ssid, ap_password);
+
+    dhcp_set_captiveportal_url();
+
+    // Start the DNS server that will redirect all queries to the softAP IP
+    dns_server_config_t config = DNS_SERVER_CONFIG_SINGLE("*" /* all A queries */, "WIFI_AP_DEF" /* softAP netif ID */);
+    start_dns_server(&config);
 }
 
 void wifi_init(void) {
